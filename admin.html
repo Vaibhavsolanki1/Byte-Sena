@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing styles from dashboard/data_entry for consistency */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; flex-wrap: wrap; /* Allow wrapping on small screens */ gap: 10px; /* Space between items if they wrap */ }
+        .header-logo { font-size: 2rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        .header-actions { display: flex; gap: 15px; flex-wrap: wrap; /* Allow buttons to wrap */ }
+        .header-link, #logout-btn { padding: 10px 20px; border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-decoration: none; white-space: nowrap; }
+        .header-link { border: 1px solid #00c6ff; background-color: transparent; color: #00c6ff; }
+        .header-link:hover { background-color: #00c6ff; color: #020a14; box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); }
+        #logout-btn { border: 1px solid #ff0064; background-color: transparent; color: #ff0064; }
+        #logout-btn:hover { background-color: #ff0064; color: #fff; box-shadow: 0 0 15px rgba(255, 0, 100, 0.5); }
+        #team-leader-console-link { display: none; /* Hidden by default, shown by JS if admin is leader */ }
+
+        .panel { background: rgba(10, 20, 30, 0.7); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 10px; padding: 30px; margin-bottom: 30px; }
+        .panel-title { font-size: 1.8rem; margin-bottom: 25px; color: #00c6ff; }
+        
+        .request-list, .member-list { list-style: none; }
+        .request-item, .member-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: rgba(0, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px; border-left: 3px solid #00c6ff; flex-wrap: wrap; gap: 10px; }
+        .request-item:nth-child(even), .member-item:nth-child(even) { background-color: rgba(0, 255, 255, 0.02); }
+        .user-info { display: flex; flex-direction: column; flex-grow: 1; /* Allow info to take space */ min-width: 200px; /* Prevent shrinking too much */ }
+        .user-name { font-weight: 700; font-size: 1.1rem; color: #fff; }
+        .user-email { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); }
+        .user-team { font-size: 0.9rem; color: #00c6ff; margin-top: 5px; }
+        .user-leader-status { font-size: 0.9rem; margin-top: 5px; color: #00ffaa; font-weight: bold; }
+        
+        .actions button { padding: 8px 15px; margin-left: 10px; border: none; border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+        .approve-btn { background-color: transparent; border: 1px solid #00ffaa; color: #00ffaa; }
+        .approve-btn:hover { background-color: #00ffaa; color: #020a14; box-shadow: 0 0 10px rgba(0, 255, 170, 0.5); }
+        .deny-btn { background-color: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; }
+        .deny-btn:hover { background-color: #ff4d4d; color: #fff; box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); }
+        .leader-btn { background-color: transparent; border: 1px solid #00c6ff; color: #00c6ff; }
+        .leader-btn:hover { background-color: #00c6ff; color: #020a14; box-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .remove-leader-btn { background-color: transparent; border: 1px solid #ffae42; color: #ffae42; }
+        .remove-leader-btn:hover { background-color: #ffae42; color: #020a14; box-shadow: 0 0 10px rgba(255, 174, 66, 0.5); }
+
+        #loading-state, #empty-state, #approved-empty-state { text-align: center; font-size: 1.2rem; padding: 40px; display: none; color: rgba(255,255,255,0.7); }
+         #message-box { text-align: center; padding: 12px; border-radius: 5px; display: none; font-size: 1rem; font-weight: 600; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; min-width: 300px; max-width: 80%; }
+         .message-success { background-color: rgba(0, 255, 255, 0.2); color: #00c6ff; border: 1px solid #00c6ff; }
+         .message-error { background-color: rgba(255, 0, 100, 0.2); color: #ff0064; border: 1px solid #ff0064; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-logo">Admin Console</div>
+            <div class="header-actions">
+                <a href="dashboard.html" class="header-link">Dashboard</a>
+                <a href="data_entry.html" class="header-link">Add Content</a>
+                <!-- NEW: Link to Team Leader Console (conditionally shown) -->
+                <a href="team_leader.html" id="team-leader-console-link" class="header-link">Leader Console</a> 
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Pending Requests Panel -->
+            <section class="panel">
+                <h2 class="panel-title">Pending Member Requests</h2>
+                <div id="loading-state">Loading Requests...</div>
+                <div id="empty-state">No pending requests found.</div>
+                <ul id="request-list" class="request-list"></ul>
+            </section>
+
+            <!-- Manage Approved Members & Leaders Panel -->
+            <section class="panel">
+                <h2 class="panel-title">Manage Approved Members & Leaders</h2>
+                <div id="approved-loading-state">Loading Approved Members...</div>
+                 <div id="approved-empty-state">No approved members found.</div>
+                <ul id="approved-member-list" class="member-list"></ul>
+            </section>
+        </main>
+        
+         <!-- Floating Message Box -->
+         <div id="message-box"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red;">Supabase not configured.</h1>';
+            throw new Error("Supabase credentials not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const requestList = document.getElementById('request-list');
+        const loadingState = document.getElementById('loading-state');
+        const emptyState = document.getElementById('empty-state');
+        const approvedMemberList = document.getElementById('approved-member-list');
+        const approvedLoadingState = document.getElementById('approved-loading-state');
+        const approvedEmptyState = document.getElementById('approved-empty-state');
+        const logoutButton = document.getElementById('logout-btn');
+        const messageBox = document.getElementById('message-box');
+        const teamLeaderConsoleLink = document.getElementById('team-leader-console-link'); // NEW
+
+        let currentUserId = null; // Store current admin ID
+
+        // --- Check Login & Fetch Data ---
+        async function initializeAdminPage() {
+            loadingState.style.display = 'block';
+            approvedLoadingState.style.display = 'block';
+
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !session) {
+                window.location.href = 'login.html'; // Redirect if not logged in
+                return;
+            }
+            currentUserId = session.user.id; // Store admin ID
+             console.log("Admin session found:", currentUserId);
+
+            // Fetch pending and approved members concurrently
+            await Promise.all([
+                fetchRequests(),
+                fetchApprovedMembers(),
+                checkIfAdminIsLeader() // NEW: Check if this admin is also a leader
+            ]);
+        }
+        
+        // --- NEW: Check if Admin is a Leader ---
+         async function checkIfAdminIsLeader() {
+             try {
+                 const { data, error } = await supabase
+                     .from('team_members')
+                     .select('id') // Just need to know if a row exists
+                     .eq('user_id', currentUserId)
+                     .eq('is_leader', true)
+                     .maybeSingle(); 
+
+                 if (error) throw error;
+
+                 if (data) {
+                     teamLeaderConsoleLink.style.display = 'inline-block'; // Show the link
+                 }
+             } catch (error) {
+                 console.error("Error checking admin's team leader status:", error);
+             }
+        }
+
+
+        // --- Fetch Pending Requests ---
+        async function fetchRequests() {
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            requestList.innerHTML = ''; 
+
+            try {
+                const { data, error } = await supabase
+                    .from('pending_requests')
+                    .select('*')
+                    .eq('status', 'pending');
+
+                if (error) throw error;
+
+                if (data.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    renderRequests(data);
+                }
+            } catch (error) {
+                console.error('Error fetching pending requests:', error);
+                requestList.innerHTML = `<li style="color: #ff4d4d;">Error loading data. Check console.</li>`;
+            } finally {
+                loadingState.style.display = 'none';
+            }
+        }
+
+        // --- Render Pending Requests ---
+        function renderRequests(requests) {
+            requestList.innerHTML = ''; // Clear just in case
+            requests.forEach(request => {
+                const item = document.createElement('li');
+                item.className = 'request-item';
+                item.dataset.id = request.id; 
+                item.dataset.email = request.email;
+
+                item.innerHTML = `
+                    <div class="user-info">
+                        <span class="user-name">${request.full_name || 'N/A'}</span>
+                        <span class="user-email">${request.email || 'N/A'}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="approve-btn">Approve</button>
+                        <button class="deny-btn">Deny</button>
+                    </div>
+                `;
+                requestList.appendChild(item);
+            });
+        }
+
+        // --- Fetch Approved Members & Leader Status ---
+         async function fetchApprovedMembers() {
+             approvedLoadingState.style.display = 'block';
+             approvedEmptyState.style.display = 'none';
+             approvedMemberList.innerHTML = '';
+
+             try {
+                 // 1. Get all approved users from pending_requests
+                 const { data: approvedUsers, error: usersError } = await supabase
+                     .from('pending_requests')
+                     .select('id, full_name, email')
+                     .eq('status', 'approved');
+                 
+                 if (usersError) throw usersError;
+
+                 if (approvedUsers.length === 0) {
+                     approvedEmptyState.style.display = 'block';
+                     return;
+                 }
+
+                 // 2. Get all team memberships to find team names and leader status
+                 const { data: memberships, error: membershipError } = await supabase
+                     .from('team_members')
+                     .select('user_id, is_leader, teams ( name )'); // Join with teams table
+                 
+                 if (membershipError) throw membershipError;
+
+                 // Create maps for easy lookup
+                 const membershipMap = memberships.reduce((map, m) => {
+                     map[m.user_id] = { 
+                         teamName: m.teams?.name || 'Unassigned', 
+                         isLeader: m.is_leader 
+                     };
+                     return map;
+                 }, {});
+
+                 // 3. Render the list
+                 renderApprovedMembers(approvedUsers, membershipMap);
+
+             } catch (error) {
+                 console.error('Error fetching approved members:', error);
+                 approvedMemberList.innerHTML = `<li style="color: #ff4d4d;">Error loading approved members. Check console.</li>`;
+             } finally {
+                 approvedLoadingState.style.display = 'none';
+             }
+         }
+
+         // --- Render Approved Members ---
+         function renderApprovedMembers(users, membershipMap) {
+             approvedMemberList.innerHTML = ''; // Clear
+             users.forEach(user => {
+                 const membership = membershipMap[user.id] || { teamName: 'Unassigned', isLeader: false };
+                 const item = document.createElement('li');
+                 item.className = 'member-item';
+                 // Store user ID and current leader status for button actions
+                 item.dataset.userId = user.id; 
+                 item.dataset.isLeader = membership.isLeader; 
+
+                 item.innerHTML = `
+                     <div class="user-info">
+                         <span class="user-name">${user.full_name || 'N/A'}</span>
+                         <span class="user-email">${user.email || 'N/A'}</span>
+                         <span class="user-team">Team: ${membership.teamName}</span>
+                         ${membership.isLeader ? '<span class="user-leader-status">TEAM LEADER</span>' : ''}
+                     </div>
+                     <div class="actions">
+                         ${membership.isLeader 
+                             ? '<button class="remove-leader-btn">Remove Leader</button>' 
+                             : '<button class="leader-btn">Make Leader</button>'
+                         }
+                         <!-- Maybe add 'Assign Team' or 'Remove User' buttons later -->
+                     </div>
+                 `;
+                 approvedMemberList.appendChild(item);
+             });
+         }
+
+        // --- Handle Pending Request Actions ---
+        requestList.addEventListener('click', async (e) => {
+            const target = e.target;
+            const item = target.closest('.request-item');
+            if (!item) return;
+
+            const requestId = item.dataset.id;
+            let newStatus = null;
+
+            if (target.classList.contains('approve-btn')) {
+                newStatus = 'approved';
+            } else if (target.classList.contains('deny-btn')) {
+                newStatus = 'denied';
+            }
+
+            if (newStatus) {
+                await updateRequestStatus(requestId, newStatus, item);
+            }
+        });
+
+        async function updateRequestStatus(id, newStatus, listItem) {
+            try {
+                const { error } = await supabase
+                    .from('pending_requests')
+                    .update({ status: newStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                // Animate removal and refresh lists
+                listItem.style.transition = 'opacity 0.5s, transform 0.5s';
+                listItem.style.opacity = '0';
+                listItem.style.transform = 'translateX(50px)';
+                showMessage(`User ${newStatus}.`, 'success');
+                setTimeout(() => {
+                    listItem.remove();
+                    // Refresh both lists after update
+                    fetchRequests(); 
+                    fetchApprovedMembers();
+                }, 500);
+
+            } catch (error) {
+                console.error(`Error updating request to ${newStatus}:`, error);
+                showMessage(`Failed to update status. Check console.`, 'error');
+            }
+        }
+
+        // --- Handle Leader Management Actions ---
+        approvedMemberList.addEventListener('click', async (e) => {
+            const target = e.target;
+            const item = target.closest('.member-item');
+            if (!item || !target.matches('button')) return; // Only buttons
+
+            const userId = item.dataset.userId;
+            const currentIsLeader = item.dataset.isLeader === 'true'; 
+            const makeLeader = target.classList.contains('leader-btn'); // True if 'Make Leader' was clicked
+
+            // Find the team_members row ID to update
+            // We need to know which team this user is ON to update the correct row.
+             try {
+                 const { data: membership, error: findError } = await supabase
+                     .from('team_members')
+                     .select('id') // Select the primary key of the team_members row
+                     .eq('user_id', userId)
+                     .maybeSingle(); // Assuming user is only on one team for now
+
+                 if (findError) throw findError;
+                 if (!membership) {
+                     showMessage('Cannot update leader status: User not found in any team.', 'error');
+                     return;
+                 }
+
+                 const teamMemberRowId = membership.id; 
+
+                 // Update the is_leader flag
+                 const { error: updateError } = await supabase
+                     .from('team_members')
+                     .update({ is_leader: makeLeader }) // Set to true if 'Make Leader', false if 'Remove Leader'
+                     .eq('id', teamMemberRowId); 
+
+                 if (updateError) throw updateError;
+
+                 showMessage(`Leader status updated successfully for ${userId}.`, 'success');
+                 // Refresh the approved members list to show the change
+                 fetchApprovedMembers();
+                 checkIfAdminIsLeader(); // Re-check if the admin's own status changed
+
+             } catch (error) {
+                 console.error('Error updating leader status:', error);
+                 showMessage('Failed to update leader status. Check console and RLS policies.', 'error');
+             }
+        });
+        
+        // --- Logout Logic ---
+        logoutButton.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // --- Utility ---
+         function showMessage(message, type) {
+            console.log(`Showing message (${type}): ${message}`);
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error'; 
+            messageBox.style.opacity = '1'; 
+            messageBox.style.display = 'block';
+            
+             setTimeout(() => { 
+                 messageBox.style.transition = 'opacity 0.5s ease';
+                 messageBox.style.opacity = '0';
+                 setTimeout(() => {
+                    messageBox.style.display = 'none'; 
+                     messageBox.style.transition = ''; 
+                 }, 500); 
+             }, 4000); 
+        }
+
+        // --- Initial Load ---
+        initializeAdminPage();
+
+    </script>
+
+</body>
+</html>
+

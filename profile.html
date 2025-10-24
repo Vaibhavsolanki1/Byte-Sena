@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - My Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing styles from dashboard/admin for consistency */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-logo { font-size: 2rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        .header-actions { display: flex; gap: 15px; }
+        .header-link { padding: 10px 20px; border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-decoration: none; white-space: nowrap; border: 1px solid #00c6ff; background-color: transparent; color: #00c6ff; }
+        .header-link:hover { background-color: #00c6ff; color: #020a14; box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); }
+        
+        .panel { background: rgba(10, 20, 30, 0.7); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 10px; padding: 30px; margin-bottom: 30px; }
+        .panel-title { font-size: 1.8rem; margin-bottom: 25px; color: #00c6ff; }
+
+        /* NEW: Basic Info Display */
+        .basic-info { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px dashed rgba(0, 255, 255, 0.2); }
+        .info-item { margin-bottom: 10px; font-size: 1.1rem; }
+        .info-label { color: rgba(255, 255, 255, 0.7); display: inline-block; width: 100px; }
+        .info-value { color: #fff; font-weight: 600; }
+
+
+        /* Form Styles */
+        .input-group { margin-bottom: 25px; }
+        .input-label { display: block; margin-bottom: 10px; color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; }
+        .input-field, .input-textarea { width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; background: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 5px; outline: none; transition: all 0.3s; }
+        .input-textarea { min-height: 100px; resize: vertical; }
+        .input-field:focus, .input-textarea:focus { border-color: #00c6ff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); background: rgba(0, 255, 255, 0.1); }
+        .input-hint { font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); margin-top: 5px; }
+        
+        .submit-btn { display: inline-block; padding: 12px 30px; border: none; border-radius: 5px; background-color: #00c6ff; color: #020a14; font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .submit-btn:hover:enabled { background-color: #1afaff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6); }
+        .submit-btn:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
+
+        /* Message Box */
+        #message-box { text-align: center; padding: 12px; border-radius: 5px; display: none; font-size: 1rem; font-weight: 600; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; min-width: 300px; max-width: 80%; }
+        .message-success { background-color: rgba(0, 255, 255, 0.2); color: #00c6ff; border: 1px solid #00c6ff; }
+        .message-error { background-color: rgba(255, 0, 100, 0.2); color: #ff0064; border: 1px solid #ff0064; }
+        #loading-state { text-align: center; font-size: 1.2rem; padding: 40px; color: rgba(255,255,255,0.7); display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-logo">My Profile</div>
+            <div class="header-actions">
+                 <a href="dashboard.html" class="header-link">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <div id="loading-state" style="display: block;">Loading Profile...</div>
+            
+            <section id="profile-panel" class="panel" style="display: none;">
+                
+                <!-- NEW: Basic Info Section -->
+                <div class="basic-info">
+                     <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span id="profile-name" class="info-value">Loading...</span>
+                    </div>
+                     <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span id="profile-email" class="info-value">Loading...</span>
+                    </div>
+                </div>
+
+                <h2 class="panel-title">Update Your Profile</h2>
+                <form id="profile-form">
+                    <div class="input-group">
+                        <label for="profile-bio" class="input-label">Bio / About Me</label>
+                        <textarea id="profile-bio" class="input-textarea" placeholder="Tell us a bit about yourself..."></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="profile-skills" class="input-label">Skills</label>
+                        <input type="text" id="profile-skills" class="input-field" placeholder="e.g., React, Python, UI/UX, Project Management">
+                        <p class="input-hint">Enter skills separated by commas.</p>
+                    </div>
+                    
+                    <button type="submit" id="save-profile-btn" class="submit-btn">Save Profile</button>
+                </form>
+            </section>
+            
+            <!-- Floating Message Box -->
+            <div id="message-box"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red;">Supabase not configured.</h1>';
+            throw new Error("Supabase credentials not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const loadingState = document.getElementById('loading-state');
+        const profilePanel = document.getElementById('profile-panel');
+        const profileForm = document.getElementById('profile-form');
+        const bioInput = document.getElementById('profile-bio');
+        const skillsInput = document.getElementById('profile-skills');
+        const saveButton = document.getElementById('save-profile-btn');
+        const messageBox = document.getElementById('message-box');
+        const profileNameEl = document.getElementById('profile-name'); // NEW
+        const profileEmailEl = document.getElementById('profile-email'); // NEW
+        
+        let currentUserId = null;
+
+        // --- Check Login & Load Profile ---
+        async function initializeProfilePage() {
+            loadingState.style.display = 'block';
+            profilePanel.style.display = 'none';
+
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError || !session) {
+                window.location.href = 'login.html'; // Redirect if not logged in
+                return;
+            }
+            currentUserId = session.user.id;
+            const userEmail = session.user.email; // Get email from session
+            console.log("User session found:", currentUserId, userEmail);
+
+             // Display email immediately
+            profileEmailEl.textContent = userEmail || 'Not available';
+
+            // Fetch profile data (bio, skills) AND basic info (full_name) in parallel
+            try {
+                const [profileRes, basicInfoRes] = await Promise.all([
+                    // Fetch profile (bio, skills)
+                    supabase.from('profiles').select('bio, skills').eq('id', currentUserId).maybeSingle(),
+                    // Fetch basic info (full_name) from pending_requests
+                    supabase.from('pending_requests').select('full_name').eq('id', currentUserId).maybeSingle() 
+                ]);
+
+                // --- Handle Profile Data ---
+                if (profileRes.error) throw profileRes.error;
+                const profileData = profileRes.data;
+                console.log("Profile data fetched:", profileData);
+                if (profileData) {
+                    bioInput.value = profileData.bio || '';
+                    skillsInput.value = (profileData.skills || []).join(', '); 
+                } else {
+                    console.log("No existing profile found.");
+                }
+
+                // --- Handle Basic Info Data ---
+                if (basicInfoRes.error) throw basicInfoRes.error;
+                const basicInfoData = basicInfoRes.data;
+                console.log("Basic info fetched:", basicInfoData);
+                profileNameEl.textContent = basicInfoData?.full_name || 'Name not set'; // Display name
+
+                // Show the panel
+                loadingState.style.display = 'none';
+                profilePanel.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading profile or basic info:', error);
+                loadingState.style.display = 'none';
+                profileNameEl.textContent = 'Error'; // Show error for name too
+                profileEmailEl.textContent = userEmail || 'Error loading'; // Still show email if possible
+                showMessage('Error loading your profile details. Check console and RLS policies.', 'error');
+                profilePanel.style.display = 'block'; // Show panel partially even on error
+            }
+        }
+
+        // --- Handle Profile Form Submission ---
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const bio = bioInput.value.trim();
+            const skillsArray = skillsInput.value.split(',')
+                                      .map(skill => skill.trim()) 
+                                      .filter(skill => skill); 
+
+            console.log("Saving profile for user:", currentUserId);
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                // Upsert profile data (bio, skills)
+                const { error } = await supabase
+                    .from('profiles')
+                    .upsert({ 
+                        id: currentUserId, 
+                        bio: bio, 
+                        skills: skillsArray 
+                    })
+                    .select();
+
+                 if (error) throw error; 
+
+                 console.log("Profile saved successfully.");
+                 showMessage('Profile updated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                // More detailed error messages based on common Supabase errors
+                if (error.message.includes('violates row-level security policy')) {
+                    showMessage('Could not save profile: Permission denied. Ensure RLS policies for profiles are correct (SELECT, INSERT, UPDATE based on user ID).', 'error');
+                } else if (error.message.includes('profiles_id_fkey') || error.message.includes('constraint')) {
+                     showMessage('Error saving profile: Database constraint issue. Ensure the "profiles" table is correctly linked to "auth.users".', 'error');
+                } else {
+                    showMessage(error.message || 'Could not save profile. Please try again.', 'error');
+                }
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Profile';
+            }
+        });
+        
+        // --- Utility ---
+        function showMessage(message, type) {
+             console.log(`Showing message (${type}): ${message}`);
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error'; 
+            messageBox.style.opacity = '1'; 
+            messageBox.style.display = 'block';
+            
+             setTimeout(() => { 
+                 messageBox.style.transition = 'opacity 0.5s ease';
+                 messageBox.style.opacity = '0';
+                 setTimeout(() => {
+                    messageBox.style.display = 'none'; 
+                     messageBox.style.transition = ''; 
+                 }, 500); 
+             }, 4000); 
+        }
+
+        // --- Initialize Page ---
+        initializeProfilePage();
+
+    </script>
+</body>
+</html>
+

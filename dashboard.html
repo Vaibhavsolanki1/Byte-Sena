@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Global Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .hub-layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            width: 250px;
+            height: 100%;
+            background: rgba(10, 20, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            padding: 30px 20px;
+            flex-shrink: 0; /* Prevent sidebar shrinking */
+        }
+
+        .sidebar-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 5px #00c6ff;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item a {
+            display: block;
+            padding: 15px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item a:hover, .nav-item a.active { /* Highlight active link */
+            color: #fff;
+            background-color: rgba(0, 255, 255, 0.1);
+            text-shadow: 0 0 5px #00c6ff;
+        }
+
+        /* Style for the admin-only link */
+        .nav-item a.admin-link {
+            color: #ff0064;
+            border: 1px dashed #ff0064;
+        }
+        .nav-item a.admin-link:hover {
+            background-color: rgba(255, 0, 100, 0.1);
+            color: #ff0064;
+            text-shadow: 0 0 5px #ff0064;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto; /* Allows scrolling if content is long */
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-title {
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+        
+        #logout-btn {
+             padding: 10px 20px;
+            border: 1px solid #ff0064;
+            border-radius: 5px;
+            background-color: transparent;
+            color: #ff0064;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #logout-btn:hover {
+            background-color: #ff0064;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 100, 0.5);
+        }
+
+        /* --- Widget Grid --- */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .widget {
+            background: rgba(10, 20, 30, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .widget-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #00c6ff;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        /* "My Team" Widget */
+        .team-list {
+            list-style: none;
+        }
+        .team-member {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .team-member::before {
+            content: '>';
+            color: #00c6ff;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .team-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        /* "My Tasks" Widget */
+        .task-list {
+            list-style: none;
+        }
+        .task-item {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        /* Basic custom checkbox */
+        .task-item::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid #00c6ff;
+            border-radius: 3px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .task-item.completed::before {
+            background-color: #00c6ff;
+            box-shadow: 0 0 5px #00c6ff;
+        }
+         .task-item.completed {
+            text-decoration: line-through;
+            color: rgba(255, 255, 255, 0.5);
+         }
+
+        /* "Hackathons" Widget */
+        .hackathon-list {
+            list-style: none;
+        }
+        .hackathon-item {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed rgba(0, 255, 255, 0.2);
+        }
+        .hackathon-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .hackathon-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .hackathon-date {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+    </style>
+</head>
+<body>
+    
+    <div class="hub-layout">
+        <!-- --- Sidebar --- -->
+        <nav class="sidebar">
+            <div class="sidebar-logo">Byte Sena</div>
+            <ul id="nav-list" class="nav-list">
+                <li class="nav-item"><a href="dashboard.html" class="active">Dashboard</a></li> 
+                <!-- Links below are placeholders, update hrefs as needed -->
+                <li class="nav-item"><a href="#">My Team</a></li> 
+                <li class="nav-item"><a href="#">Hackathons</a></li>
+                <li class="nav-item"><a href="#">Tasks</a></li>
+                <!-- MODIFIED: Updated Profile Link -->
+                <li class="nav-item"><a href="profile.html">Profile</a></li> 
+                <!-- Admin Console link will be added here by JS if user is admin -->
+            </ul>
+        </nav>
+
+        <!-- --- Main Content --- -->
+        <main class="main-content">
+            <header class="header">
+                <h1 id="welcome-title" class="welcome-title">Welcome...</h1>
+                <button id="logout-btn">Logout</button>
+            </header>
+
+            <div class="widget-grid">
+                
+                <!-- My Team Widget -->
+                <section class="widget">
+                    <h2 class="widget-title">My Team</h2>
+                    <div id="team-name" class="team-name">Loading...</div>
+                    <ul id="team-list" class="team-list">
+                        <!-- Team members will be loaded here by JS -->
+                        <li id="team-loading-state">Loading team...</li>
+                    </ul>
+                </section>
+
+                <!-- My Tasks Widget -->
+                <section class="widget">
+                    <h2 class="widget-title">My Tasks</h2>
+                    <ul id="task-list" class="task-list">
+                         <!-- Tasks will be loaded here by JS -->
+                         <li id="tasks-loading-state">Loading tasks...</li>
+                    </ul>
+                </section>
+                
+                <!-- Upcoming Hackathons Widget -->
+                <section class="widget">
+                    <h2 class="widget-title">Upcoming Hackathons</h2>
+                    <ul id="hackathon-list" class="hackathon-list">
+                        <!-- Hackathons will be loaded here by JS -->
+                        <li id="hackathons-loading-state">Loading hackathons...</li>
+                    </ul>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase logic for the dashboard -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Configuration ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red; text-align: center; margin-top: 50px;">Supabase is not configured in dashboard.html.</h1>';
+            throw new Error("Supabase credentials are not set.");
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const welcomeTitle = document.getElementById('welcome-title');
+        const logoutButton = document.getElementById('logout-btn');
+        const teamNameEl = document.getElementById('team-name');
+        const teamListEl = document.getElementById('team-list');
+        const taskListEl = document.getElementById('task-list');
+        const hackathonListEl = document.getElementById('hackathon-list');
+        const navList = document.getElementById('nav-list'); 
+
+        // --- Security Check & Data Fetching ---
+        async function loadDashboard() {
+            // 1. Check for a valid session
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error('Error getting session:', sessionError);
+                window.location.href = 'login.html'; 
+                return;
+            }
+
+            if (!session) {
+                console.log('No session found. Redirecting to login.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 2. User is logged in. Fetch their data.
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+                console.error('Error getting user:', userError);
+                welcomeTitle.textContent = 'Welcome, Member!';
+            } else {
+                welcomeTitle.textContent = `Welcome, ${user.email}`;
+
+                // --- Admin Link Check ---
+                if (user.email === 'vaibhavsolankijee@gmail.com') { // Use your actual admin email
+                    const adminLinkItem = document.createElement('li');
+                    adminLinkItem.className = 'nav-item';
+                    adminLinkItem.innerHTML = `<a href="admin.html" class="admin-link">Admin Console</a>`;
+                    
+                    const dataEntryLinkItem = document.createElement('li'); // Also add Data Entry link
+                     dataEntryLinkItem.className = 'nav-item';
+                     dataEntryLinkItem.innerHTML = `<a href="data_entry.html" class="admin-link">Add Content</a>`;
+
+                    navList.appendChild(adminLinkItem);
+                    navList.appendChild(dataEntryLinkItem);
+                }
+
+                // 3. Load dashboard widgets with REAL data
+                loadTeamWidget(user.id);
+                loadTasksWidget(user.id);
+                loadHackathonsWidget();
+            }
+        }
+
+        // --- Widget Data Functions ---
+        async function loadTeamWidget(userId) {
+            try {
+                // 1. Find what team the user is on
+                const { data: teamLink, error: teamLinkError } = await supabase
+                    .from('team_members')
+                    .select('team_id')
+                    .eq('user_id', userId)
+                    .maybeSingle(); // Use maybeSingle to handle users not on a team
+
+                if (teamLinkError && teamLinkError.code !== 'PGRST116') { // Ignore 'Not Found' error
+                     throw teamLinkError;
+                 }
+                 
+                if (!teamLink) {
+                    teamNameEl.textContent = 'Not assigned to a team';
+                    document.getElementById('team-loading-state').remove();
+                    return;
+                }
+
+                const teamId = teamLink.team_id;
+
+                // 2. Get the team's name
+                const { data: teamData, error: teamError } = await supabase
+                    .from('teams')
+                    .select('name')
+                    .eq('id', teamId)
+                    .single();
+
+                if (teamError) throw teamError;
+                teamNameEl.textContent = teamData.name;
+
+                // 3. Get all members of that team (IDs)
+                const { data: memberLinks, error: membersError } = await supabase
+                    .from('team_members')
+                    .select('user_id')
+                    .eq('team_id', teamId);
+                
+                if (membersError) throw membersError;
+                
+                const userIds = memberLinks.map(m => m.user_id);
+
+                // 4. Get the names for those user_ids from 'pending_requests'
+                if (userIds.length > 0) {
+                     const { data: members, error: namesError } = await supabase
+                         .from('pending_requests') // Assumes names are stored here
+                         .select('full_name')
+                         .in('id', userIds) // Match users by their ID (which links to auth.users.id)
+                          .eq('status', 'approved'); // Only show approved members
+
+                     if (namesError) throw namesError;
+
+                     teamListEl.innerHTML = members.map(member => 
+                         `<li class="team-member">${member.full_name || 'Name not set'}</li>`
+                     ).join('');
+                 } else {
+                      teamListEl.innerHTML = '<li class="team-member">No other members found.</li>';
+                 }
+
+            } catch (error) {
+                console.error('Error loading team:', error);
+                teamNameEl.textContent = 'Error loading team';
+                 // Ensure loading state is removed even on error
+                 const loadingState = document.getElementById('team-loading-state');
+                 if (loadingState) loadingState.remove(); 
+            }
+        }
+
+        async function loadTasksWidget(userId) {
+            try {
+                const { data: tasks, error } = await supabase
+                    .from('tasks')
+                    .select('id, title, is_complete') // Select ID for later updates
+                    .eq('assigned_to', userId) 
+                    .order('is_complete', { ascending: true }); 
+
+                if (error) throw error;
+
+                if (tasks.length === 0) {
+                    taskListEl.innerHTML = `<li class="task-item">No tasks assigned.</li>`;
+                    return;
+                }
+
+                taskListEl.innerHTML = tasks.map(task => 
+                    // Add data-task-id to the list item
+                    `<li class="task-item ${task.is_complete ? 'completed' : ''}" data-task-id="${task.id}"> 
+                        ${task.title}
+                     </li>`
+                ).join('');
+
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('tasks-loading-state').textContent = 'Error loading tasks.';
+            }
+        }
+
+        async function loadHackathonsWidget() {
+            try {
+                const { data: hackathons, error } = await supabase
+                    .from('hackathons')
+                    .select('title, start_date')
+                    .order('start_date', { ascending: true });
+
+                if (error) throw error;
+
+                if (hackathons.length === 0) {
+                    hackathonListEl.innerHTML = `<li class="hackathon-item">No upcoming hackathons.</li>`;
+                    return;
+                }
+
+                hackathonListEl.innerHTML = hackathons.map(hackathon => `
+                    <li class="hackathon-item">
+                        <div class="hackathon-title">${hackathon.title}</div>
+                        <div class="hackathon-date">${new Date(hackathon.start_date).toLocaleDateString()}</div>
+                    </li>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading hackathons:', error);
+                document.getElementById('hackathons-loading-state').textContent = 'Error loading hackathons.';
+            }
+        }
+
+        // --- Logout Logic ---
+        logoutButton.addEventListener('click', async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Error logging out:', error);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // --- Initialize the Dashboard ---
+        loadDashboard();
+
+    </script>
+
+</body>
+</html>
+
