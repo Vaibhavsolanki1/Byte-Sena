@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena - Team Leader Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing styles from admin/data_entry for consistency */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-logo { font-size: 2rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        .header-actions { display: flex; gap: 15px; }
+        .header-link, #logout-btn { padding: 10px 20px; border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-decoration: none; white-space: nowrap; }
+        .header-link { border: 1px solid #00c6ff; background-color: transparent; color: #00c6ff; }
+        .header-link:hover { background-color: #00c6ff; color: #020a14; box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); }
+        #logout-btn { border: 1px solid #ff0064; background-color: transparent; color: #ff0064; }
+        #logout-btn:hover { background-color: #ff0064; color: #fff; box-shadow: 0 0 15px rgba(255, 0, 100, 0.5); }
+        
+        .panel { background: rgba(10, 20, 30, 0.7); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 10px; padding: 30px; margin-bottom: 30px; }
+        .panel-title { font-size: 1.8rem; margin-bottom: 25px; color: #00c6ff; }
+        
+        /* Member List Styles */
+        .member-list { list-style: none; }
+        .member-item { padding: 10px; background-color: rgba(0, 255, 255, 0.05); border-radius: 5px; margin-bottom: 8px; border-left: 3px solid #00c6ff; }
+        .member-name { font-weight: 600; color: #fff; }
+        .member-email { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-left: 10px; }
+
+        /* Task Form Styles */
+        .input-group { margin-bottom: 20px; }
+        .input-label { display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.7); }
+        .input-field, .input-select { width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; background: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 5px; outline: none; }
+        .input-field:focus, .input-select:focus { border-color: #00c6ff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+        .submit-btn { width: 100%; padding: 12px; border: none; border-radius: 5px; background-color: #00c6ff; color: #020a14; font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .submit-btn:hover { background-color: #1afaff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6); }
+
+        /* Message Box */
+        #message-box { text-align: center; padding: 12px; border-radius: 5px; display: none; font-size: 1rem; font-weight: 600; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; min-width: 300px; max-width: 80%; }
+        .message-success { background-color: rgba(0, 255, 255, 0.2); color: #00c6ff; border: 1px solid #00c6ff; }
+        .message-error { background-color: rgba(255, 0, 100, 0.2); color: #ff0064; border: 1px solid #ff0064; }
+        #loading-state, #access-denied { text-align: center; font-size: 1.2rem; padding: 40px; color: #ff4d4d; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-logo">Team Leader Console</div>
+            <div class="header-actions">
+                 <a href="dashboard.html" class="header-link">My Dashboard</a>
+                 <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- Loading and Access Denied Messages -->
+            <div id="loading-state" style="display: block;">Checking Authorization & Loading Team...</div>
+            <div id="access-denied">Access Denied: You are not designated as a team leader for any team.</div>
+
+            <!-- Team Members Panel (populated by JS) -->
+            <section id="team-members-panel" class="panel" style="display: none;">
+                <h2 class="panel-title">Your Team: <span id="team-name-display">Loading...</span></h2>
+                <ul id="member-list" class="member-list">
+                    <!-- Member items will be injected here -->
+                    <li>Loading members...</li> 
+                </ul>
+            </section>
+
+            <!-- Assign Task Panel (populated by JS) -->
+             <section id="assign-task-panel" class="panel" style="display: none;">
+                <h2 class="panel-title">Assign New Task</h2>
+                <form id="task-form">
+                    <div class="input-group">
+                        <label for="task-title" class="input-label">Task Title</label>
+                        <input type="text" id="task-title" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="task-member" class="input-label">Assign To</label>
+                        <select id="task-member" class="input-select" required>
+                            <option value="">Loading members...</option>
+                            <!-- Team members will be populated here -->
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">Assign Task</button>
+                </form>
+            </section>
+            
+             <!-- Floating Message Box -->
+             <div id="message-box"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red;">Supabase not configured.</h1>';
+            throw new Error("Supabase credentials not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const mainContent = document.getElementById('main-content');
+        const loadingState = document.getElementById('loading-state');
+        const accessDenied = document.getElementById('access-denied');
+        const teamMembersPanel = document.getElementById('team-members-panel');
+        const assignTaskPanel = document.getElementById('assign-task-panel');
+        const memberList = document.getElementById('member-list');
+        const taskForm = document.getElementById('task-form');
+        const taskMemberSelect = document.getElementById('task-member');
+        const teamNameDisplay = document.getElementById('team-name-display');
+        const logoutButton = document.getElementById('logout-btn');
+        const messageBox = document.getElementById('message-box');
+        
+        let currentUserId = null;
+        let leaderTeamId = null; 
+        let teamMembersDetails = {}; // Store { userId: { full_name, email } }
+
+        // --- Check Login and Leader Status ---
+        async function initializePage() {
+            loadingState.style.display = 'block'; // Show loading initially
+            accessDenied.style.display = 'none'; // Hide access denied initially
+            
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError || !session) {
+                console.log("No session found, redirecting to login.");
+                window.location.href = 'login.html'; // Redirect if not logged in
+                return;
+            }
+            currentUserId = session.user.id;
+            console.log("User session found:", currentUserId);
+
+            // Check if the current user is a leader of *any* team
+            try {
+                console.log("Checking leader status for user:", currentUserId);
+                const { data: leaderData, error: leaderError } = await supabase
+                    .from('team_members')
+                    .select('team_id, teams ( name )') // Fetch team_id and team name 
+                    .eq('user_id', currentUserId)
+                    .eq('is_leader', true)
+                    .maybeSingle(); // We assume a user leads only one team for now
+
+                if (leaderError) throw leaderError;
+
+                if (!leaderData || !leaderData.team_id) {
+                    // User is not a leader or not assigned to a team as leader
+                    console.log("User is not a leader or not assigned.");
+                    loadingState.style.display = 'none';
+                    accessDenied.style.display = 'block';
+                    return; // Stop further execution
+                }
+                
+                // User is a leader
+                leaderTeamId = leaderData.team_id;
+                const teamName = leaderData.teams?.name || 'Your Team';
+                console.log(`User is leader of team ${teamName} (ID: ${leaderTeamId})`);
+                teamNameDisplay.textContent = teamName; 
+
+                // Fetch and display team members
+                await fetchAndDisplayTeamMembers(leaderTeamId);
+                
+                // Show panels
+                loadingState.style.display = 'none';
+                teamMembersPanel.style.display = 'block';
+                assignTaskPanel.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error checking leader status or loading data:', error);
+                loadingState.style.display = 'none';
+                showMessage('Error loading page data. Check console.', 'error');
+                // Optionally show access denied if the error implies permissions issue
+                // accessDenied.style.display = 'block'; 
+            }
+        }
+
+        // --- Fetch and Display Team Members ---
+        async function fetchAndDisplayTeamMembers(teamId) {
+            console.log("Fetching members for team ID:", teamId);
+            memberList.innerHTML = '<li>Loading members...</li>'; // Clear existing
+            taskMemberSelect.innerHTML = '<option value="">Loading members...</option>'; // Clear dropdown
+            teamMembersDetails = {}; // Clear cache
+
+            try {
+                // Fetch all user_ids belonging to the leader's team
+                const { data: members, error: memberError } = await supabase
+                    .from('team_members')
+                    .select('user_id')
+                    .eq('team_id', teamId);
+                
+                if (memberError) throw memberError;
+
+                if (!members || members.length === 0) {
+                    console.log("No members found in this team.");
+                    memberList.innerHTML = '<li class="member-item" style="color: #aaa;">No members found in this team.</li>';
+                    taskMemberSelect.innerHTML = '<option value="">No members found</option>';
+                    return;
+                }
+                console.log("Found members:", members);
+                const memberUserIds = members.map(m => m.user_id);
+
+                // Fetch details (name, email) for these user IDs from pending_requests
+                // We assume all team members exist in pending_requests with status 'approved'
+                console.log("Fetching details for user IDs:", memberUserIds);
+                const { data: userDetails, error: userError } = await supabase
+                    .from('pending_requests') 
+                    .select('id, full_name, email')
+                    .in('id', memberUserIds)
+                    .eq('status', 'approved'); // Ensure we only get approved members' details
+
+                if (userError) throw userError;
+                
+                console.log("Fetched user details:", userDetails);
+                
+                memberList.innerHTML = ''; // Clear "Loading..."
+                taskMemberSelect.innerHTML = '<option value="">Select a member</option>'; // Reset dropdown
+
+                if (userDetails && userDetails.length > 0) {
+                     userDetails.forEach(user => {
+                        teamMembersDetails[user.id] = { full_name: user.full_name, email: user.email }; // Cache details
+                        
+                        // Add to displayed list
+                        const listItem = document.createElement('li');
+                        listItem.className = 'member-item';
+                        listItem.innerHTML = `
+                            <span class="member-name">${user.full_name || 'N/A'}</span>
+                            <span class="member-email">(${user.email || 'N/A'})</span>
+                        `;
+                        memberList.appendChild(listItem);
+
+                        // Add to task assignment dropdown (only if not the leader themselves?)
+                        // if (user.id !== currentUserId) { // Optional: exclude leader from assign list
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = `${user.full_name || 'N/A'} (${user.email || 'N/A'})`;
+                            taskMemberSelect.appendChild(option);
+                        // }
+                    });
+                } else {
+                     memberList.innerHTML = '<li class="member-item" style="color: #aaa;">No approved member details found.</li>';
+                     taskMemberSelect.innerHTML = '<option value="">No members available</option>';
+                     console.log("No details found or members might not be approved.");
+                }
+
+            } catch (error) {
+                console.error('Error fetching team members:', error);
+                 memberList.innerHTML = '<li class="member-item error-message">Error loading members. Check console.</li>';
+                 taskMemberSelect.innerHTML = '<option value="">Error loading members</option>';
+            }
+        }
+
+        // --- Handle Task Assignment Form ---
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('task-title').value.trim();
+            const assignedUserId = taskMemberSelect.value;
+
+            if (!title) {
+                showMessage('Please enter a task title.', 'error');
+                return;
+            }
+            if (!assignedUserId) {
+                showMessage('Please select a team member.', 'error');
+                return;
+            }
+            
+            // Basic check: is the selected user ID actually in our list?
+            if (!teamMembersDetails[assignedUserId]) {
+                 showMessage('Invalid member selected.', 'error');
+                 return;
+            }
+
+            console.log(`Assigning task "${title}" to user ${assignedUserId}`);
+            const submitButton = taskForm.querySelector('.submit-btn');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Assigning...';
+
+
+            try {
+                // Insert the new task into the 'tasks' table
+                const { error } = await supabase
+                    .from('tasks')
+                    .insert([{ 
+                        title: title, 
+                        assigned_to: assignedUserId, 
+                        is_complete: false 
+                        // You could add 'assigned_by: currentUserId' if you add that column
+                        // You could add 'team_id: leaderTeamId' if you add that column
+                    }]);
+                
+                if (error) throw error; // Let the catch block handle RLS/other errors
+                
+                console.log("Task assigned successfully.");
+                showMessage('Task assigned successfully!', 'success');
+                taskForm.reset(); // Clear the form
+                taskMemberSelect.value = ""; // Reset dropdown selection
+
+            } catch (error) {
+                console.error('Error assigning task:', error);
+                // Provide more specific feedback if possible
+                if (error.message.includes('violates row-level security policy')) {
+                     showMessage('Could not assign task: Permission denied. Check RLS policies on the "tasks" table.', 'error');
+                } else {
+                     showMessage(error.message || 'Could not assign task. Please try again.', 'error');
+                }
+            } finally {
+                 submitButton.disabled = false;
+                 submitButton.textContent = 'Assign Task';
+            }
+        });
+        
+        // --- Logout Logic ---
+        logoutButton.addEventListener('click', async () => {
+             console.log("Logging out...");
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // --- Utility ---
+        function showMessage(message, type) {
+            console.log(`Showing message (${type}): ${message}`);
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error'; 
+            messageBox.style.opacity = '1'; // Ensure visible
+            messageBox.style.display = 'block';
+            
+            // Auto-hide with fade out
+             setTimeout(() => { 
+                 messageBox.style.transition = 'opacity 0.5s ease';
+                 messageBox.style.opacity = '0';
+                 setTimeout(() => {
+                    messageBox.style.display = 'none'; 
+                    // messageBox.style.opacity = '1'; // Reset opacity for next message (can be done when shown)
+                     messageBox.style.transition = ''; // Remove transition
+                 }, 500); // Wait for fade out
+             }, 4000); // Start fadeout after 4 seconds
+        }
+
+        // --- Initialize Page ---
+        console.log("Initializing Team Leader page...");
+        initializePage();
+
+    </script>
+</body>
+</html>
+

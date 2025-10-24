@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Request Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* All styles are identical to login.html for consistency */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .background-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .background-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+        }
+
+        #background-logo {
+            position: absolute;
+            width: 80vh;
+            height: 80vh;
+            object-fit: contain;
+            opacity: 0.08; 
+            z-index: 2; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: backgroundLogoPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes backgroundLogoPulse {
+            from {
+                opacity: 0.08;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0.12;
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        #falling-words-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .falling-word {
+            position: absolute;
+            font-family: 'monospace', sans-serif;
+            font-size: 0.8rem;
+            color: rgba(0, 255, 255, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            user-select: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .signup-container { /* Renamed from login-container */
+            width: 400px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            z-index: 4;
+        }
+
+        @keyframes rotating {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .signup-container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, #00c6ff);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            animation: rotating 4s linear infinite;
+            animation-delay: -1s;
+        }
+
+        .signup-container::after {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            background: rgba(10, 20, 30, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px; /* Reduced margin */
+            color: #fff;
+            text-shadow: 
+                0 0 5px #00c6ff,
+                0 0 10px #00c6ff,
+                0 0 20px #00c6ff,
+                0 0 40px #00c6ff;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: #fff;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.5);
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-label {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: 0.3s ease-out;
+        }
+
+        .input-field:focus + .input-label,
+        .input-field:valid + .input-label {
+            top: -15px;
+            font-size: 0.8rem;
+            color: #00c6ff;
+        }
+
+        .input-field:focus {
+            border-bottom-color: #00c6ff;
+            box-shadow: 0 5px 15px -10px rgba(0, 255, 255, 0.5);
+        }
+
+        .signup-btn { /* Renamed from login-btn */
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #00c6ff;
+            color: #020a14;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: box-shadow 0.3s, background-color 0.3s;
+        }
+
+        .signup-btn:hover {
+            background-color: #1afaff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .links a {
+            color: #00c6ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        
+        #message-box {
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .message-success {
+            background-color: rgba(0, 255, 255, 0.1);
+            color: #00c6ff;
+            border: 1px solid #00c6ff;
+        }
+        .message-error {
+            background-color: rgba(255, 0, 100, 0.1);
+            color: #ff0064;
+            border: 1px solid #ff0064;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <div class="background-container">
+        <img src="bytesena-logo.png" alt="Byte Sena Logo" id="background-logo">
+        <div id="falling-words-container"></div>
+    </div>
+
+    <main class="signup-container">
+        <div class="content-wrapper">
+            <h1 class="logo">Byte Sena</h1>
+            <p class="subtitle">Request Access</p>
+            
+            <form id="signup-form">
+                <div class="input-group">
+                    <input type="text" id="fullname" class="input-field" required>
+                    <label for="fullname" class="input-label">Full Name</label>
+                </div>
+                
+                <div class="input-group">
+                    <input type="email" id="email" class="input-field" required>
+                    <label for="email" class="input-label">Email</label>
+                </div>
+                
+                <div class="input-group">
+                    <input type="password" id="password" class="input-field" required>
+                    <label for="password" class="input-label">Password</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="confirm-password" class="input-field" required>
+                    <label for="confirm-password" class="input-label">Confirm Password</label>
+                </div>
+                
+                <button type="submit" class="signup-btn">
+                    Submit Request
+                </button>
+            </form>
+            
+            <div id="message-box"></div>
+
+            <div class="links">
+                <a href="login.html">Already have access? Login</a>
+            </div>
+        </div>
+    </main>
+    
+    <!-- MODIFIED: Swapped Firebase for Supabase -->
+    <script type="module">
+        // Import the Supabase client
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // IMPORTANT: Replace with your project's Supabase URL and Anon Key
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        // Initialize Supabase
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- Signup Logic ---
+        const signupForm = document.getElementById('signup-form');
+        const messageBox = document.getElementById('message-box');
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match.', 'error');
+                return;
+            }
+
+            try {
+                // 1. Create the user in Supabase Authentication
+                const { data, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                });
+
+                if (authError) throw authError;
+
+                const user = data.user;
+                if (!user) throw new Error("User creation failed. Please try again.");
+
+                // 2. Insert a new row into your 'pending_requests' table
+                const { error: insertError } = await supabase
+                    .from('pending_requests')
+                    .insert([
+                        { 
+                            id: user.id, // Supabase user ID
+                            full_name: fullName, 
+                            email: email,
+                            status: 'pending' 
+                        }
+                    ]);
+
+                if (insertError) throw insertError;
+                
+                showMessage('Your request has been submitted successfully! An admin will review it shortly.', 'success');
+                signupForm.style.display = 'none';
+
+            } catch (error) {
+                console.error("Supabase Signup Error:", error);
+                showMessage(error.message || 'An unexpected error occurred. Please try again.', 'error');
+            }
+        });
+
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error';
+            messageBox.style.display = 'block';
+        }
+
+    </script>
+    
+    <script>
+        // Existing script for input labels (no changes needed here)
+        document.querySelectorAll('.input-field').forEach(input => {
+            if (input.value) input.classList.add('valid');
+            input.addEventListener('blur', () => {
+                if (input.value) input.classList.add('valid');
+                else input.classList.remove('valid');
+            });
+        });
+
+        // Falling Words JavaScript (no changes needed here)
+        const fallingWordsContainer = document.getElementById('falling-words-container');
+        const words = ['0', '1', 'Byte', 'Sena', 'Code', 'Hack', 'Matrix', 'Data', 'System', 'Glitch', 'Binary', '{ }', '< />', '//', '$', '#', '@', '&', '>', '<', ':', ';', '!', '?', '+', '-', '*', '/'];
+        function createFallingWord() {
+            const word = document.createElement('span');
+            word.classList.add('falling-word');
+            word.textContent = words[Math.floor(Math.random() * words.length)];
+            word.style.left = `${Math.random() * 100}vw`;
+            const duration = Math.random() * 10 + 5;
+            const delay = Math.random() * -5;
+            word.style.animationDuration = `${duration}s`;
+            word.style.animationDelay = `${delay}s`;
+            fallingWordsContainer.appendChild(word);
+            word.addEventListener('animationend', () => {
+                word.remove();
+            });
+        }
+        setInterval(createFallingWord, 150);
+    </script>
+
+</body>
+</html>
+

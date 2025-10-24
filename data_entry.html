@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Data Entry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Re-using dashboard styles for consistency */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            /* Allow vertical scrolling if content overflows */
+            min-height: 100vh; 
+            height: auto; 
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 40px;
+        }
+        .header-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 5px #00c6ff;
+        }
+        #logout-btn {
+             padding: 10px 20px;
+            border: 1px solid #ff0064;
+            border-radius: 5px;
+            background-color: transparent;
+            color: #ff0064;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #logout-btn:hover {
+            background-color: #ff0064;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 100, 0.5);
+        }
+        
+        /* Form Styles */
+        .data-form {
+            background: rgba(10, 20, 30, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .form-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #00c6ff;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .input-field, .input-select {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: #fff;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+        .input-field:focus, .input-select:focus {
+            border-color: #00c6ff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #00c6ff;
+            color: #020a14;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #1afaff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        
+        /* Message Box */
+        #message-box {
+            text-align: center;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .message-success {
+            background-color: rgba(0, 255, 255, 0.1);
+            color: #00c6ff;
+            border: 1px solid #00c6ff;
+        }
+        .message-error {
+            background-color: rgba(255, 0, 100, 0.1);
+            color: #ff0064;
+            border: 1px solid #ff0064;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-logo">Add Content</div>
+            <button id="logout-btn">Logout</button>
+        </header>
+
+        <main>
+            <!-- Form to Add Hackathon -->
+            <form id="hackathon-form" class="data-form">
+                <h2 class="form-title">Add New Hackathon</h2>
+                <div class="input-group">
+                    <label for="hackathon-title" class="input-label">Title</label>
+                    <input type="text" id="hackathon-title" class="input-field" required>
+                </div>
+                 <!-- NEW: Hackathon Description -->
+                <div class="input-group">
+                    <label for="hackathon-desc" class="input-label">Description (Optional)</label>
+                    <input type="text" id="hackathon-desc" class="input-field">
+                </div>
+                <div class="input-group">
+                    <label for="hackathon-date" class="input-label">Start Date</label>
+                    <input type="date" id="hackathon-date" class="input-field" required>
+                </div>
+                <button type="submit" class="submit-btn">Add Hackathon</button>
+            </form>
+
+            <!-- Form to Add Task -->
+            <form id="task-form" class="data-form">
+                <h2 class="form-title">Create New Task</h2>
+                <div class="input-group">
+                    <label for="task-title" class="input-label">Task Title</label>
+                    <input type="text" id="task-title" class="input-field" required>
+                </div>
+                <div class="input-group">
+                    <label for="task-user" class="input-label">Assign To</label>
+                    <select id="task-user" class="input-select" required>
+                        <option value="">Loading users...</option>
+                        <!-- Users will be populated by JS -->
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">Assign Task</button>
+            </form>
+
+            <!-- NEW: Form to Create Team -->
+            <form id="team-form" class="data-form">
+                <h2 class="form-title">Create New Team</h2>
+                <div class="input-group">
+                    <label for="team-name" class="input-label">Team Name</label>
+                    <input type="text" id="team-name" class="input-field" required>
+                </div>
+                <button type="submit" class="submit-btn">Create Team</button>
+            </form>
+
+            <!-- NEW: Form to Assign User to Team -->
+            <form id="assign-team-form" class="data-form">
+                <h2 class="form-title">Assign User to Team</h2>
+                <div class="input-group">
+                    <label for="assign-user" class="input-label">Select User</label>
+                    <select id="assign-user" class="input-select" required>
+                        <option value="">Loading users...</option>
+                        <!-- Users will be populated by JS -->
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="assign-team" class="input-label">Select Team</label>
+                    <select id="assign-team" class="input-select" required>
+                        <option value="">Loading teams...</option>
+                        <!-- Teams will be populated by JS -->
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">Assign to Team</button>
+            </form>
+            
+            <div id="message-box"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Configuration ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red; text-align: center; margin-top: 50px;">Supabase is not configured.</h1>';
+            throw new Error("Supabase credentials are not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const hackathonForm = document.getElementById('hackathon-form');
+        const taskForm = document.getElementById('task-form');
+        const teamForm = document.getElementById('team-form'); // New
+        const assignTeamForm = document.getElementById('assign-team-form'); // New
+        
+        const userSelectForTask = document.getElementById('task-user');
+        const userSelectForAssignment = document.getElementById('assign-user'); // New
+        const teamSelectForAssignment = document.getElementById('assign-team'); // New
+        
+        const messageBox = document.getElementById('message-box');
+        const logoutButton = document.getElementById('logout-btn');
+
+        // --- Admin Security Check ---
+        async function checkAdmin() {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (user.email !== 'vaibhavsolankijee@gmail.com') {
+                alert('Access Denied: This page is for admins only.');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // If admin, load dropdowns
+            loadUsersForDropdowns();
+            loadTeamsForDropdown(); // New
+        }
+
+        // --- Populate User Dropdowns ---
+        // MODIFIED: Populates both user dropdowns
+        async function loadUsersForDropdowns() {
+            try {
+                const { data, error } = await supabase
+                    .from('pending_requests')
+                    .select('id, full_name, email')
+                    .eq('status', 'approved'); 
+
+                if (error) throw error;
+
+                // Clear existing options except the placeholder
+                userSelectForTask.innerHTML = '<option value="">Select a user</option>';
+                userSelectForAssignment.innerHTML = '<option value="">Select a user</option>';
+
+                if (data.length === 0) {
+                    userSelectForTask.innerHTML = '<option value="">No approved users found</option>';
+                     userSelectForAssignment.innerHTML = '<option value="">No approved users found</option>';
+                    return;
+                }
+
+                data.forEach(user => {
+                    const optionText = `${user.full_name} (${user.email})`;
+                    
+                    // Add to task dropdown
+                    const taskOption = document.createElement('option');
+                    taskOption.value = user.id;
+                    taskOption.textContent = optionText;
+                    userSelectForTask.appendChild(taskOption);
+                    
+                    // Add to assignment dropdown
+                    const assignOption = document.createElement('option');
+                    assignOption.value = user.id;
+                    assignOption.textContent = optionText;
+                    userSelectForAssignment.appendChild(assignOption);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+                userSelectForTask.innerHTML = '<option value="">Error loading users</option>';
+                userSelectForAssignment.innerHTML = '<option value="">Error loading users</option>';
+            }
+        }
+
+        // --- NEW: Populate Team Dropdown ---
+        async function loadTeamsForDropdown() {
+             try {
+                const { data, error } = await supabase
+                    .from('teams')
+                    .select('id, name');
+
+                if (error) throw error;
+                
+                teamSelectForAssignment.innerHTML = '<option value="">Select a team</option>'; // Clear loading
+
+                if (data.length === 0) {
+                    teamSelectForAssignment.innerHTML = '<option value="">No teams found. Create one first.</option>';
+                    return;
+                }
+
+                data.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id; 
+                    option.textContent = team.name;
+                    teamSelectForAssignment.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                teamSelectForAssignment.innerHTML = '<option value="">Error loading teams</option>';
+            }
+        }
+        
+        // --- Form Submission Handlers ---
+        hackathonForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('hackathon-title').value;
+            const description = document.getElementById('hackathon-desc').value; // Get description
+            const date = document.getElementById('hackathon-date').value;
+
+            try {
+                // MODIFIED: Include description
+                const { error } = await supabase
+                    .from('hackathons')
+                    .insert([{ title: title, description: description, start_date: date }]); 
+                
+                if (error) throw error;
+                
+                showMessage('Hackathon added successfully!', 'success');
+                hackathonForm.reset();
+            } catch (error) {
+                console.error('Error adding hackathon:', error);
+                showMessage(error.message, 'error');
+            }
+        });
+        
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('task-title').value;
+            const userId = userSelectForTask.value; 
+
+            if (!userId) {
+                showMessage('Please select a user to assign the task.', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('tasks')
+                    .insert([{ title: title, assigned_to: userId, is_complete: false }]);
+                
+                if (error) throw error;
+                
+                showMessage('Task assigned successfully!', 'success');
+                taskForm.reset();
+            } catch (error) {
+                console.error('Error assigning task:', error);
+                showMessage(error.message, 'error');
+            }
+        });
+
+        // --- NEW: Team Creation Handler ---
+        teamForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const teamName = document.getElementById('team-name').value;
+
+            try {
+                const { error } = await supabase
+                    .from('teams')
+                    .insert([{ name: teamName }]);
+                
+                if (error) throw error;
+                
+                showMessage('Team created successfully!', 'success');
+                teamForm.reset();
+                loadTeamsForDropdown(); // Refresh the team dropdown list
+            } catch (error) {
+                console.error('Error creating team:', error);
+                showMessage(error.message, 'error');
+            }
+        });
+        
+        // --- NEW: Assign User to Team Handler ---
+        assignTeamForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = userSelectForAssignment.value;
+            const teamId = teamSelectForAssignment.value;
+
+            if (!userId || !teamId) {
+                showMessage('Please select both a user and a team.', 'error');
+                return;
+            }
+
+            try {
+                 // Check if the user is already on this team to prevent duplicates
+                const { data: existing, error: checkError } = await supabase
+                    .from('team_members')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('team_id', teamId)
+                    .maybeSingle(); // Returns null if not found, doesn't throw error
+
+                if (checkError) throw checkError;
+
+                if (existing) {
+                    showMessage('This user is already on this team.', 'error');
+                    return;
+                }
+
+                // If not already assigned, insert the link
+                const { error: insertError } = await supabase
+                    .from('team_members')
+                    .insert([{ user_id: userId, team_id: teamId }]);
+                
+                if (insertError) throw insertError;
+                
+                showMessage('User successfully assigned to team!', 'success');
+                assignTeamForm.reset(); // Clear the form
+
+            } catch (error) {
+                console.error('Error assigning user to team:', error);
+                showMessage(error.message || 'Could not assign user to team.', 'error');
+            }
+        });
+
+        // --- Logout Logic ---
+        logoutButton.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // --- Utility ---
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error';
+            messageBox.style.display = 'block';
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // --- Initialize Page ---
+        checkAdmin();
+
+    </script>
+</body>
+</html>
+
