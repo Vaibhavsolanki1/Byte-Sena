@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Organization Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing global styles for the content area */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        .header { padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-title { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+
+        .panel { 
+            background: rgba(10, 20, 30, 0.7); 
+            border: 1px solid rgba(0, 255, 255, 0.2); 
+            border-radius: 10px; 
+            padding: 30px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        .panel-title { font-size: 1.8rem; margin-bottom: 25px; color: #00c6ff; }
+        
+        /* Motto & Core Info */
+        #motto {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        #core-members-list {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 30px;
+            padding-top: 10px;
+        }
+        .member-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+        }
+        .member-role { font-weight: 700; color: #00ffaa; font-size: 1.1rem; }
+        .member-name { font-size: 1rem; color: #fff; }
+
+        /* Scoreboard Grid */
+        .scoreboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+            padding-top: 15px;
+        }
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: rgba(0, 255, 255, 0.08);
+            border-left: 5px solid #00c6ff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00c6ff;
+            text-shadow: 0 0 10px #00c6ff;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+        #win-rate-bar {
+            height: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        #win-rate-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00c6ff, #00ffaa);
+            border-radius: 8px;
+            transition: width 1s ease-out;
+        }
+
+        /* Responsive design */
+         @media (max-width: 600px) {
+             .header-title { font-size: 2rem; }
+             #core-members-list { flex-direction: column; align-items: center; }
+             .member-card { width: 100%; }
+             .container { padding: 20px; }
+         }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">Byte Sena Organization Hub</h1>
+        </header>
+
+        <main>
+            <!-- Back to Dashboard Link -->
+            <a href="dashboard.html" style="color: #00ffaa; text-decoration: none; display: block; margin-bottom: 20px;">&larr; Back to Dashboard</a>
+
+            <!-- Motto & Mission -->
+            <section class="panel">
+                <p id="motto" class="panel-title" style="margin-bottom: 0;">Loading Motto...</p>
+                <p id="motto-detail" style="text-align: center; color: #00c6ff; font-size: 1rem; margin-top: 10px;">Our mission is to engineer victory through clean code and strategic thinking.</p>
+            </section>
+
+            <!-- Core Members/Leadership -->
+            <section class="panel">
+                <h2 class="panel-title">Core Leadership</h2>
+                <ul id="core-members-list">
+                    <!-- Leader cards will be inserted here -->
+                    <li id="leader-loading-state" class="member-card">Loading Core Members...</li>
+                </ul>
+            </section>
+
+            <!-- Scoreboard & Performance -->
+            <section class="panel">
+                <h2 class="panel-title">Hackathon Performance Scoreboard</h2>
+                <div class="scoreboard-grid">
+                    <div class="stat-card">
+                        <div id="total-participated" class="stat-number">0</div>
+                        <div class="stat-label">Total Participated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="total-won" class="stat-number">0</div>
+                        <div class="stat-label">Total Competitions Won</div>
+                    </div>
+                     <div class="stat-card">
+                        <div id="total-top3" class="stat-number">0</div>
+                        <div class="stat-label">Placed Top 3</div>
+                    </div>
+                    <div class="stat-card" style="grid-column: 1 / -1; margin-top: 10px;">
+                        <div class="stat-number" style="font-size: 1.5rem;">Win Rate</div>
+                        <div id="win-rate-bar">
+                            <div id="win-rate-fill" style="width: 0%;"></div>
+                        </div>
+                         <div id="win-rate-percent" class="stat-label" style="margin-top: 10px;">0%</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red;">Supabase not configured.</h1>';
+            throw new Error("Supabase credentials not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const coreMembersList = document.getElementById('core-members-list');
+        const totalParticipatedEl = document.getElementById('total-participated');
+        const totalWonEl = document.getElementById('total-won');
+        const totalTop3El = document.getElementById('total-top3');
+        const winRateFill = document.getElementById('win-rate-fill');
+        const winRatePercent = document.getElementById('win-rate-percent');
+        
+        // --- Security Check ---
+        async function checkSession() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                // If not logged in, redirect to login page
+                window.location.href = 'login.html'; 
+                return false;
+            }
+            return true;
+        }
+
+        // --- Fetch and Display Data ---
+        async function loadOrgHub() {
+            if (!(await checkSession())) return;
+
+            await Promise.all([
+                loadCoreMembers(),
+                loadScoreboard()
+            ]);
+        }
+
+        // --- Core Members (Admins and Team Leaders) ---
+        async function loadCoreMembers() {
+             coreMembersList.innerHTML = ''; // Clear loading state
+             try {
+                // 1. Get the Admin (by hardcoded email for now)
+                const { data: adminUser, error: adminError } = await supabase
+                    .from('pending_requests')
+                    .select('id, full_name, email')
+                    .eq('email', 'vaibhavsolankijee@gmail.com')
+                    .maybeSingle();
+
+                if (adminError) throw adminError;
+                
+                // 2. Add the Admin (The primary owner)
+                if (adminUser) {
+                     renderMemberCard({ 
+                        role: 'FOUNDER / ADMIN', 
+                        name: adminUser.full_name || 'Vaibhav Solanki', 
+                        email: adminUser.email 
+                    });
+                }
+                
+                // 3. Get all Team Leaders
+                 const { data: leaderLinks, error: leaderLinkError } = await supabase
+                     .from('team_members')
+                     .select('user_id, teams ( name )')
+                     .eq('is_leader', true);
+                     
+                 if (leaderLinkError) throw leaderLinkError;
+                 
+                 const leaderIds = leaderLinks.map(l => l.user_id);
+                 
+                 // 4. Get details for the leaders (excluding the admin if they are also a leader)
+                 const { data: leaderDetails, error: detailsError } = await supabase
+                     .from('pending_requests')
+                     .select('id, full_name, email')
+                     .in('id', leaderIds);
+                     
+                 if (detailsError) throw detailsError;
+                 
+                 // 5. Render Leader Cards
+                 leaderDetails.forEach(leader => {
+                     // Find the team name associated with this leader's ID
+                      const link = leaderLinks.find(l => l.user_id === leader.id);
+                      const teamName = link?.teams?.name || 'Unassigned';
+                      
+                      // Only render if they are not the main admin
+                      if (leader.email !== 'vaibhavsolankijee@gmail.com') {
+                          renderMemberCard({ 
+                             role: `LEADER (${teamName})`, 
+                             name: leader.full_name || 'Team Leader', 
+                             email: leader.email 
+                         });
+                      }
+                 });
+                 
+                 if (!adminUser && leaderDetails.length === 0) {
+                     coreMembersList.innerHTML = '<li>No core members configured.</li>';
+                 }
+
+             } catch (error) {
+                 console.error('Error loading core members:', error);
+                 coreMembersList.innerHTML = '<li>Error loading core members. Check console.</li>';
+             }
+        }
+
+        function renderMemberCard(member) {
+             const listItem = document.createElement('li');
+             listItem.className = 'member-card';
+             listItem.innerHTML = `
+                 <div class="member-role">${member.role}</div>
+                 <div class="member-name">${member.name}</div>
+                 <div class="member-email" style="font-size: 0.8rem;">${member.email}</div>
+             `;
+             coreMembersList.appendChild(listItem);
+        }
+
+
+        // --- Scoreboard ---
+        async function loadScoreboard() {
+             try {
+                // Fetch all hackathons
+                const { data: hackathons, error } = await supabase
+                    .from('hackathons')
+                    .select('id, is_won, placed_top_3') // Assuming you add these columns later
+                    .neq('is_won', null); // Only count records where results are set (not null)
+
+                if (error) throw error;
+                
+                // Add dummy columns if they don't exist yet, for safety
+                 const hackathonData = hackathons.map(h => ({
+                     ...h,
+                     is_won: h.is_won ?? Math.random() > 0.8, // Dummy win
+                     placed_top_3: h.placed_top_3 ?? Math.random() > 0.6 // Dummy top 3
+                 }));
+                
+                const totalParticipated = hackathonData.length;
+                const totalWon = hackathonData.filter(h => h.is_won).length;
+                const totalTop3 = hackathonData.filter(h => h.placed_top_3).length;
+                
+                // Calculate Win Rate
+                const winRate = totalParticipated > 0 ? (totalWon / totalParticipated) * 100 : 0;
+                
+                // Update DOM
+                totalParticipatedEl.textContent = totalParticipated;
+                totalWonEl.textContent = totalWon;
+                totalTop3El.textContent = totalTop3;
+                winRatePercent.textContent = `${winRate.toFixed(1)}%`;
+                
+                // Animate Win Rate Bar
+                setTimeout(() => {
+                    winRateFill.style.width = `${winRate}%`;
+                }, 100);
+
+             } catch (error) {
+                 console.error('Error loading scoreboard:', error);
+                 // Display N/A on error
+                 totalParticipatedEl.textContent = 'N/A';
+                 totalWonEl.textContent = 'N/A';
+             }
+        }
+
+        // --- Initialize Page ---
+        loadOrgHub();
+    </script>
+</body>
+</html>
