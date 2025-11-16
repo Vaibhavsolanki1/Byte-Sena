@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Team Directory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing common structural styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-title { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        /* Team Card Styles */
+        .team-card {
+            background: rgba(10, 20, 30, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        .team-name {
+            font-size: 1.8rem;
+            color: #00c6ff;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+        .member-list {
+            list-style: none;
+            padding-top: 10px;
+        }
+        .member-item {
+            margin-bottom: 8px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .member-item strong {
+            margin-right: 8px;
+            color: #00ffaa;
+            font-size: 0.9rem;
+        }
+        .leader-badge {
+            font-size: 0.8rem;
+            color: #ff0064;
+            background-color: rgba(255, 0, 100, 0.1);
+            padding: 3px 6px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: 700;
+        }
+        
+        #loading-state { text-align: center; font-size: 1.2rem; padding: 40px; color: rgba(255,255,255,0.7); }
+        
+        /* Responsive Link Fix */
+        .header a { white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">Team Directory</h1>
+            <a href="dashboard.html" style="color: #00ffaa; text-decoration: none;">&larr; Back to Dashboard</a>
+        </header>
+
+        <main>
+             <div id="loading-state">Loading Team Data...</div>
+            <div id="team-grid" class="team-grid" style="display: none;">
+                <!-- Team cards will be injected here -->
+            </div>
+            <div id="no-teams" style="display: none; text-align: center; padding: 50px;">
+                No teams have been created yet.
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = '<h1 style="color: red;">Supabase not configured.</h1>';
+            throw new Error("Supabase credentials not set.");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const teamGridEl = document.getElementById('team-grid');
+        const loadingState = document.getElementById('loading-state');
+        const noTeamsState = document.getElementById('no-teams');
+
+        // --- Security Check ---
+        async function checkSession() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                window.location.href = 'index.html'; // Redirect to index (login)
+                return false;
+            }
+            return true;
+        }
+
+        // --- Main Data Fetching Logic ---
+        async function loadTeamDirectory() {
+            if (!(await checkSession())) return;
+
+            loadingState.style.display = 'block';
+            teamGridEl.style.display = 'none';
+
+            try {
+                // Fetch all team memberships, including team names and member details (full_name)
+                // This is complex, so we will fetch three tables and join them client-side.
+                const [teamsRes, membersRes, userDetailsRes] = await Promise.all([
+                    supabase.from('teams').select('id, name'),
+                    supabase.from('team_members').select('team_id, user_id, is_leader'),
+                    supabase.from('pending_requests').select('id, full_name, email')
+                ]);
+
+                if (teamsRes.error) throw teamsRes.error;
+                if (membersRes.error) throw membersRes.error;
+                if (userDetailsRes.error) throw userDetailsRes.error;
+                
+                const allTeams = teamsRes.data;
+                const allMemberships = membersRes.data;
+                const allUserDetails = userDetailsRes.data;
+
+                if (allTeams.length === 0) {
+                    loadingState.style.display = 'none';
+                    noTeamsState.style.display = 'block';
+                    return;
+                }
+
+                teamGridEl.innerHTML = '';
+                
+                // Group members by team ID
+                const teamsWithMembers = allTeams.map(team => {
+                    const teamMembers = allMemberships
+                        .filter(m => m.team_id === team.id)
+                        .map(m => {
+                            const user = allUserDetails.find(u => u.id === m.user_id);
+                            return user ? { 
+                                name: user.full_name, 
+                                email: user.email, 
+                                isLeader: m.is_leader 
+                            } : null;
+                        })
+                        .filter(member => member !== null); // Filter out users not found in pending_requests
+                    
+                    return {
+                        id: team.id,
+                        name: team.name,
+                        members: teamMembers.sort((a, b) => (b.isLeader - a.isLeader)) // Sort leaders first
+                    };
+                });
+                
+                // Render the grid
+                teamsWithMembers.forEach(team => {
+                    const card = document.createElement('div');
+                    card.className = 'team-card';
+                    
+                    let memberHtml = team.members.length > 0 ? '' : '<li>No members assigned.</li>';
+                    
+                    team.members.forEach(member => {
+                        memberHtml += `
+                            <li class="member-item">
+                                <span>${member.name || 'N/A'}</span>
+                                <span style="color: #aaa; font-size: 0.9rem; margin-left: 5px;">(${member.email || 'N/A'})</span>
+                                ${member.isLeader ? '<span class="leader-badge">LEADER</span>' : ''}
+                            </li>
+                        `;
+                    });
+                    
+                    card.innerHTML = `
+                        <h2 class="team-name">${team.name}</h2>
+                        <h3 style="font-size: 1.1rem; color: #00ffaa;">Members (${team.members.length})</h3>
+                        <ul class="member-list">
+                            ${memberHtml}
+                        </ul>
+                    `;
+                    teamGridEl.appendChild(card);
+                });
+
+
+            } catch (error) {
+                console.error('Error loading team directory:', error);
+                teamGridEl.innerHTML = `<p style="color: #ff4d4d;">Failed to load team data. Check RLS policies.</p>`;
+            } finally {
+                loadingState.style.display = 'none';
+                teamGridEl.style.display = 'grid';
+            }
+        }
+
+        loadTeamDirectory();
+    </script>
+</body>
+</html>

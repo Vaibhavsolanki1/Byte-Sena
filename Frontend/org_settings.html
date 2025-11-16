@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena - Organization Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing global styles for the content area */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-title { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        
+        .panel { 
+            background: rgba(10, 20, 30, 0.7); 
+            border: 1px solid rgba(0, 255, 255, 0.2); 
+            border-radius: 10px; 
+            padding: 30px; 
+            margin-bottom: 30px; 
+        }
+        .panel-title { font-size: 1.8rem; margin-bottom: 25px; color: #00c6ff; }
+
+        /* Form Styles */
+        .input-group { margin-bottom: 25px; }
+        .input-label { display: block; margin-bottom: 10px; color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; }
+        .input-field, .input-textarea { width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; background: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 5px; outline: none; transition: all 0.3s; }
+        .input-textarea { min-height: 100px; resize: vertical; }
+        .input-field:focus, .input-textarea:focus { border-color: #00c6ff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); background: rgba(0, 255, 255, 0.1); }
+
+        .submit-btn { display: inline-block; padding: 12px 30px; border: none; border-radius: 5px; background-color: #00c6ff; color: #020a14; font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .submit-btn:hover:enabled { background-color: #1afaff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6); }
+        .submit-btn:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
+        
+        /* Utility */
+        #loading-state { text-align: center; font-size: 1.2rem; padding: 40px; color: rgba(255,255,255,0.7); display: none; }
+        #message-box { text-align: center; padding: 12px; border-radius: 5px; display: none; font-size: 1rem; font-weight: 600; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; min-width: 300px; max-width: 80%; }
+        .message-success { background-color: rgba(0, 255, 255, 0.2); color: #00c6ff; border: 1px solid #00c6ff; }
+        .message-error { background-color: rgba(255, 0, 100, 0.2); color: #ff0064; border: 1px solid #ff0064; }
+        .header a { color: #00ffaa; text-decoration: none; font-weight: 600; margin-left: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">Organization Settings</h1>
+            <a href="admin.html">&larr; Back to Admin Console</a>
+        </header>
+
+        <main>
+            <div id="loading-state" style="display: block;">Checking Authorization & Loading Settings...</div>
+            
+            <section id="settings-panel" class="panel" style="display: none;">
+                <h2 class="panel-title">Edit Organization Motto & Info</h2>
+                <form id="settings-form">
+                    
+                    <div class="input-group">
+                        <label for="org-motto" class="input-label">Organization Motto</label>
+                        <input type="text" id="org-motto" class="input-field" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="core-message" class="input-label">Core Mission/Message</label>
+                        <textarea id="core-message" class="input-textarea"></textarea>
+                    </div>
+
+                    <button type="submit" id="save-settings-btn" class="submit-btn">Save Organization Details</button>
+                </form>
+            </section>
+            
+            <div id="message-box"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+        const ADMIN_EMAIL = 'vaibhavsolankijee@gmail.com'; 
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // --- DOM Elements ---
+        const loadingState = document.getElementById('loading-state');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsForm = document.getElementById('settings-form');
+        const mottoInput = document.getElementById('org-motto');
+        const messageInput = document.getElementById('core-message');
+        const saveButton = document.getElementById('save-settings-btn');
+        const messageBox = document.getElementById('message-box');
+
+        // --- Core ID for the single row of settings data ---
+        // Since we assume only one row exists, we target the first available ID
+        let settingsId = null; 
+
+        // --- Security Check & Load Settings ---
+        async function initializeSettingsPage() {
+            loadingState.style.display = 'block';
+            settingsPanel.style.display = 'none';
+
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            // Security Check: Redirect if not logged in OR not the primary admin
+            if (sessionError || !session || session.user.email !== ADMIN_EMAIL) {
+                alert('Access Denied: Only the primary administrator can view these settings.');
+                window.location.href = 'dashboard.html'; 
+                return;
+            }
+
+            // Fetch current settings
+            try {
+                const { data: settings, error } = await supabase
+                    .from('org_settings')
+                    .select('id, motto, core_message')
+                    .limit(1) // Only fetch the single row
+                    .single(); 
+
+                if (error) throw error;
+                
+                // Store the ID of the settings row (needed for update)
+                settingsId = settings.id;
+                mottoInput.value = settings.motto || '';
+                messageInput.value = settings.core_message || '';
+                
+                loadingState.style.display = 'none';
+                settingsPanel.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading organization settings:', error);
+                loadingState.style.display = 'none';
+                showMessage('Error loading settings. Ensure the "org_settings" table exists and has at least one default row.', 'error');
+            }
+        }
+
+        // --- Handle Form Submission (Save) ---
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!settingsId) {
+                showMessage('Cannot save: Settings ID not loaded.', 'error');
+                return;
+            }
+
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                const { error } = await supabase
+                    .from('org_settings')
+                    .update({
+                        motto: mottoInput.value.trim(),
+                        core_message: messageInput.value.trim()
+                    })
+                    .eq('id', settingsId); // Update the single existing row
+                
+                if (error) throw error;
+                
+                showMessage('Organization details updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showMessage(error.message || 'Failed to save settings. Check RLS policies.', 'error');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Organization Details';
+            }
+        });
+        
+        // --- Utility ---
+         function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = type === 'success' ? 'message-success' : 'message-error'; 
+            messageBox.style.opacity = '1'; 
+            messageBox.style.display = 'block';
+             setTimeout(() => { 
+                 messageBox.style.transition = 'opacity 0.5s ease';
+                 messageBox.style.opacity = '0';
+                 setTimeout(() => {
+                    messageBox.style.display = 'none'; 
+                     messageBox.style.transition = ''; 
+                 }, 500); 
+             }, 4000); 
+        }
+
+        initializeSettingsPage();
+    </script>
+</body>
+</html>
