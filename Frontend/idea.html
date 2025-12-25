@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Idea Think Tank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global & Structural Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-title { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        .back-link { color: #00ffaa; text-decoration: none; font-size: 1rem; }
+
+        /* Panel Styles */
+        .panel { 
+            background: rgba(10, 20, 30, 0.8); 
+            border: 1px solid rgba(0, 255, 255, 0.2); 
+            border-radius: 10px; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+        }
+        .panel-title { font-size: 1.5rem; color: #00c6ff; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.1); padding-bottom: 10px; }
+
+        /* Form Styles */
+        .input-group { margin-bottom: 15px; }
+        .input-label { display: block; margin-bottom: 5px; color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; }
+        .input-field, .input-textarea { 
+            width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; 
+            background: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3); 
+            border-radius: 5px; color: #fff; outline: none; 
+        }
+        .input-textarea { min-height: 80px; resize: vertical; }
+        .submit-btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 5px; 
+            background-color: #00c6ff; color: #020a14; font-family: 'Orbitron', sans-serif; 
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s; 
+        }
+        .submit-btn:hover { background-color: #1afaff; box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); }
+
+        /* Idea Card Styles */
+        .idea-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .idea-card { 
+            background: rgba(0, 255, 255, 0.03); border: 1px solid rgba(0, 255, 255, 0.1); 
+            border-radius: 8px; padding: 20px; position: relative;
+        }
+        .idea-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .idea-author { font-size: 0.8rem; color: #00ffaa; margin-bottom: 5px; }
+        .idea-title { font-size: 1.2rem; color: #fff; }
+        .idea-desc { font-size: 0.95rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4; }
+        
+        #loading-state { text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.5); }
+        #message-box { text-align: center; padding: 10px; margin-top: 10px; border-radius: 5px; display: none; font-size: 0.9rem; }
+        .msg-success { background: rgba(0, 255, 170, 0.1); color: #00ffaa; border: 1px solid #00ffaa; }
+        .msg-error { background: rgba(255, 0, 100, 0.1); color: #ff0064; border: 1px solid #ff0064; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">Idea Think Tank</h1>
+            <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
+        </header>
+
+        <main>
+            <!-- Submission Panel -->
+            <section class="panel">
+                <h2 class="panel-title">Propose a New Mission</h2>
+                <form id="idea-form">
+                    <div class="input-group">
+                        <label for="title" class="input-label">Project/Hackathon Title</label>
+                        <input type="text" id="title" class="input-field" placeholder="Target Objective..." required>
+                    </div>
+                    <div class="input-group">
+                        <label for="description" class="input-label">Mission Brief (Description)</label>
+                        <textarea id="description" class="input-textarea" placeholder="Detailed strategy and core concepts..." required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Broadcast Idea</button>
+                    <div id="message-box"></div>
+                </form>
+            </section>
+
+            <!-- Display Panel -->
+            <section class="panel">
+                <h2 class="panel-title">Active Transmissions (Ideas)</h2>
+                <div id="loading-state">Syncing with database...</div>
+                <div id="idea-grid" class="idea-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        const ideaForm = document.getElementById('idea-form');
+        const ideaGrid = document.getElementById('idea-grid');
+        const loadingState = document.getElementById('loading-state');
+        const messageBox = document.getElementById('message-box');
+
+        let currentUserName = "Anonymous User";
+
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Fetch user name for display
+            const { data: profile } = await supabase
+                .from('pending_requests')
+                .select('full_name')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            
+            if (profile) currentUserName = profile.full_name;
+
+            loadIdeas();
+        }
+
+        async function loadIdeas() {
+            try {
+                // IMPORTANT: Ensure you have an 'ideas' table in Supabase
+                const { data: ideas, error } = await supabase
+                    .from('ideas')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                loadingState.style.display = 'none';
+                ideaGrid.innerHTML = '';
+
+                if (ideas.length === 0) {
+                    ideaGrid.innerHTML = '<p style="text-align:center; color:#aaa;">No ideas transmitted yet. Be the first!</p>';
+                    return;
+                }
+
+                ideas.forEach(idea => {
+                    const card = document.createElement('div');
+                    card.className = 'idea-card';
+                    card.innerHTML = `
+                        <div class="idea-author">Transmitted by: ${idea.author_name || 'Classified'}</div>
+                        <div class="idea-title">${idea.title}</div>
+                        <p class="idea-desc">${idea.description}</p>
+                    `;
+                    ideaGrid.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+                loadingState.textContent = "Error syncing data. Ensure the 'ideas' table exists.";
+            }
+        }
+
+        ideaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const { error } = await supabase
+                    .from('ideas')
+                    .insert([{ 
+                        user_id: user.id, 
+                        author_name: currentUserName,
+                        title, 
+                        description 
+                    }]);
+
+                if (error) throw error;
+
+                showMessage("Idea successfully broadcasted to the Think Tank!", "success");
+                ideaForm.reset();
+                loadIdeas();
+            } catch (err) {
+                showMessage("Transmission failed. Database error.", "error");
+            }
+        });
+
+        function showMessage(txt, type) {
+            messageBox.textContent = txt;
+            messageBox.className = type === 'success' ? 'msg-success' : 'msg-error';
+            messageBox.style.display = 'block';
+            setTimeout(() => messageBox.style.display = 'none', 4000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
