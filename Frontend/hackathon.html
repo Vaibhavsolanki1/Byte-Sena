@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Sena Hub - Hackathon Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global & Structural Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #020a14;
+            color: #e0e0e0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); margin-bottom: 40px; }
+        .header-title { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px #00c6ff; }
+        .back-link { color: #00ffaa; text-decoration: none; font-size: 1rem; }
+
+        /* Categorization Tabs/Headers */
+        .section-header { 
+            font-size: 1.8rem; 
+            margin: 40px 0 20px; 
+            color: #00c6ff; 
+            display: flex; 
+            align-items: center;
+            gap: 15px;
+        }
+        .section-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(0, 198, 255, 0.3);
+        }
+
+        /* Hackathon Cards */
+        .hackathon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .hack-card {
+            background: rgba(10, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hack-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+        .hack-date {
+            font-size: 0.9rem;
+            color: #00ffaa;
+            margin-bottom: 10px;
+        }
+        .hack-title {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        .hack-desc {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Result Badges */
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+        .badge-won { background: rgba(255, 215, 0, 0.2); color: #ffd700; border: 1px solid #ffd700; }
+        .badge-placed { background: rgba(0, 255, 170, 0.2); color: #00ffaa; border: 1px solid #00ffaa; }
+        .badge-upcoming { background: rgba(0, 198, 255, 0.2); color: #00c6ff; border: 1px solid #00c6ff; }
+
+        #loading-state { text-align: center; padding: 100px; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">Hackathon Archive</h1>
+            <a href="dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+        </header>
+
+        <main id="main-content">
+            <div id="loading-state">Syncing with Central Intelligence...</div>
+
+            <!-- Upcoming Section -->
+            <section id="upcoming-section" style="display: none;">
+                <h2 class="section-header">Upcoming Operations</h2>
+                <div id="upcoming-grid" class="hackathon-grid"></div>
+            </section>
+
+            <!-- Completed Section -->
+            <section id="completed-section" style="display: none;">
+                <h2 class="section-header">Historical Log</h2>
+                <div id="completed-grid" class="hackathon-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Config ---
+        const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
+
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        async function init() {
+            // Security check
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadHackathons();
+        }
+
+        async function loadHackathons() {
+            const loadingEl = document.getElementById('loading-state');
+            const upGrid = document.getElementById('upcoming-grid');
+            const compGrid = document.getElementById('completed-grid');
+            const upSection = document.getElementById('upcoming-section');
+            const compSection = document.getElementById('completed-section');
+
+            try {
+                const { data: hacks, error } = await supabase
+                    .from('hackathons')
+                    .select('*')
+                    .order('start_date', { ascending: false });
+
+                if (error) throw error;
+
+                loadingEl.style.display = 'none';
+                
+                const now = new Date();
+                let hasUpcoming = false;
+                let hasCompleted = false;
+
+                hacks.forEach(hack => {
+                    const hackDate = new Date(hack.start_date);
+                    const isUpcoming = hackDate >= now;
+
+                    const card = document.createElement('div');
+                    card.className = 'hack-card';
+                    
+                    let badgesHtml = '';
+                    if (isUpcoming) {
+                        badgesHtml = '<span class="badge badge-upcoming">Upcoming</span>';
+                    } else {
+                        if (hack.is_won) badgesHtml += '<span class="badge badge-won">1st Place</span>';
+                        if (hack.placed_top_3 && !hack.is_won) badgesHtml += '<span class="badge badge-placed">Top 3</span>';
+                    }
+
+                    card.innerHTML = `
+                        <div class="hack-date">${hackDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <h3 class="hack-title">${hack.title}</h3>
+                        <p class="hack-desc">${hack.description || 'No mission details provided for this operation.'}</p>
+                        <div class="hack-badges">${badgesHtml}</div>
+                    `;
+
+                    if (isUpcoming) {
+                        upGrid.appendChild(card);
+                        hasUpcoming = true;
+                    } else {
+                        compGrid.appendChild(card);
+                        hasCompleted = true;
+                    }
+                });
+
+                if (hasUpcoming) upSection.style.display = 'block';
+                if (hasCompleted) compSection.style.display = 'block';
+
+                if (!hasUpcoming && !hasCompleted) {
+                    loadingEl.textContent = "No hackathons recorded in the archives yet.";
+                    loadingEl.style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error(err);
+                loadingEl.textContent = "Failed to retrieve archives. Check link status.";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

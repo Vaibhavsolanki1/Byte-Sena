@@ -39,7 +39,7 @@
             backdrop-filter: blur(10px);
             border-right: 1px solid rgba(0, 255, 255, 0.2);
             padding: 30px 20px;
-            flex-shrink: 0; /* Prevent sidebar shrinking */
+            flex-shrink: 0;
         }
 
         .sidebar-logo {
@@ -66,13 +66,12 @@
             transition: all 0.3s ease;
         }
 
-        .nav-item a:hover, .nav-item a.active { /* Highlight active link */
+        .nav-item a:hover, .nav-item a.active {
             color: #fff;
             background-color: rgba(0, 255, 255, 0.1);
             text-shadow: 0 0 5px #00c6ff;
         }
 
-        /* Style for the admin/leader links */
         .nav-item a.admin-link {
             color: #ff0064;
             border: 1px dashed #ff0064;
@@ -96,7 +95,7 @@
         .main-content {
             flex: 1;
             padding: 40px;
-            overflow-y: auto; /* Allows scrolling if content is long */
+            overflow-y: auto;
         }
 
         .header {
@@ -112,7 +111,7 @@
         }
         
         #logout-btn {
-             padding: 10px 20px;
+            padding: 10px 20px;
             border: 1px solid #ff0064;
             border-radius: 5px;
             background-color: transparent;
@@ -141,6 +140,8 @@
             border-radius: 10px;
             padding: 25px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .widget-title {
@@ -152,12 +153,11 @@
             padding-bottom: 10px;
         }
         
-        /* NEW Button Style */
         .widget-action-btn {
              display: block;
              text-align: center;
              padding: 8px 15px;
-             margin-top: 15px;
+             margin-top: auto;
              border: 1px solid #00ffaa;
              border-radius: 5px;
              background-color: transparent;
@@ -166,7 +166,7 @@
              font-size: 0.9rem;
              cursor: pointer;
              transition: all 0.3s;
-             text-decoration: none; /* Make it look like a button */
+             text-decoration: none;
         }
         .widget-action-btn:hover {
              background-color: #00ffaa;
@@ -174,12 +174,12 @@
              box-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
         }
 
-
-        /* "My Team" Widget */
-        .team-list {
+        /* List Styles */
+        .team-list, .task-list, .hackathon-list {
             list-style: none;
+            margin-bottom: 20px;
         }
-        .team-member {
+        .team-member, .hackathon-item {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
@@ -198,19 +198,14 @@
             margin-bottom: 15px;
         }
 
-        /* "My Tasks" Widget */
-        .task-list {
-            list-style: none;
-        }
         .task-item {
             font-size: 1rem;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            cursor: pointer; /* Enable clicking */
-            user-select: none; /* Prevent text selection on click */
+            cursor: pointer;
+            user-select: none;
         }
-        /* Basic custom checkbox */
         .task-item::before {
             content: '';
             width: 16px;
@@ -225,23 +220,16 @@
             background-color: #00c6ff;
             box-shadow: 0 0 5px #00c6ff;
         }
-         .task-item.completed {
+        .task-item.completed {
             text-decoration: line-through;
             color: rgba(255, 255, 255, 0.5);
-         }
+        }
 
-        /* "Hackathons" Widget */
-        .hackathon-list {
-            list-style: none;
-        }
         .hackathon-item {
+            flex-direction: column;
+            align-items: flex-start;
             padding-bottom: 15px;
-            margin-bottom: 15px;
             border-bottom: 1px dashed rgba(0, 255, 255, 0.2);
-        }
-        .hackathon-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
         }
         .hackathon-title {
             font-size: 1.1rem;
@@ -250,7 +238,7 @@
         }
         .hackathon-date {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(0, 255, 170, 0.7);
         }
 
     </style>
@@ -263,8 +251,9 @@
             <div class="sidebar-logo">Byte Sena</div>
             <ul id="nav-list" class="nav-list">
                 <li class="nav-item"><a href="dashboard.html" class="active">Dashboard</a></li>
-                <!-- MODIFIED: "My Team" changed to "Team Directory" and links correctly -->
                 <li class="nav-item"><a href="team_directory.html">Team Directory</a></li>
+                <!-- UPDATED LINK TO HACKATHON.HTML -->
+                <li class="nav-item"><a href="hackathon.html">Hackathon Ops</a></li>
                 <li class="nav-item"><a href="org_hub.html">Organization Hub</a></li> 
                 <li class="nav-item"><a href="profile.html">My Profile</a></li>
             </ul>
@@ -279,14 +268,13 @@
 
             <div class="widget-grid">
                 
-                <!-- My Team Widget (NOW INCLUDES BUTTON) -->
+                <!-- My Team Widget -->
                 <section class="widget">
                     <h2 class="widget-title">My Team</h2>
                     <div id="team-name" class="team-name">Loading...</div>
                     <ul id="team-list" class="team-list">
                         <li id="team-loading-state">Loading team...</li>
                     </ul>
-                    <!-- MODIFIED: Button linking to team_directory.html -->
                     <a href="team_directory.html" class="widget-action-btn">View All Teams</a>
                 </section>
 
@@ -304,6 +292,8 @@
                     <ul id="hackathon-list" class="hackathon-list">
                         <li id="hackathons-loading-state">Loading hackathons...</li>
                     </ul>
+                    <!-- UPDATED LINK TO HACKATHON.HTML -->
+                    <a href="hackathon.html" class="widget-action-btn">Hackathon Archives</a>
                 </section>
 
             </div>
@@ -316,11 +306,6 @@
         // --- Supabase Configuration ---
         const supabaseUrl = 'https://xidmunqlvafekyvmmbaf.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpZG11bnFsdmFmZWt5dm1tYmFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNjI3ODEsImV4cCI6MjA3NjYzODc4MX0.Lbzzj4G-Wqf9_I34lacmo9RB6q5WizucuP12T0KdUh8';
-
-        if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
-            document.body.innerHTML = '<h1 style="color: red; text-align: center; margin-top: 50px;">Supabase is not configured in dashboard.html.</h1>';
-            throw new Error("Supabase credentials are not set.");
-        }
 
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -338,31 +323,35 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
             if (sessionError || !session) {
-                window.location.href = 'index.html'; // Redirect to index (login)
+                window.location.href = 'index.html'; 
                 return;
             }
 
-            const { data: { user } } = await supabase.auth.getUser();
-            const currentUserId = user.id;
+            const currentUserId = session.user.id;
 
             // Fetch name for welcome title and status for links concurrently
             const [nameRes, leaderRes] = await Promise.all([
-                 // Fetch full_name for welcome
                 supabase.from('pending_requests').select('full_name').eq('id', currentUserId).maybeSingle(),
-                // Check leader status
                 supabase.from('team_members').select('is_leader').eq('user_id', currentUserId).maybeSingle()
             ]);
 
-            const fullName = nameRes.data?.full_name || user.email;
+            const fullName = nameRes.data?.full_name || session.user.email;
             welcomeTitle.textContent = `Welcome, ${fullName}`;
 
-            // --- Admin/Leader Link Check ---
-            if (user.email === 'vaibhavsolankijee@gmail.com') {
+            // Admin Check
+            if (session.user.email === 'vaibhavsolankijee@gmail.com') {
                 const adminLink = document.createElement('li');
                 adminLink.className = 'nav-item';
                 adminLink.innerHTML = `<a href="admin.html" class="admin-link">Admin Console</a>`;
                 navList.appendChild(adminLink);
+                
+                const dataEntryLink = document.createElement('li');
+                dataEntryLink.className = 'nav-item';
+                dataEntryLink.innerHTML = `<a href="data_entry.html" class="admin-link">Add Content</a>`;
+                navList.appendChild(dataEntryLink);
             }
+
+            // Leader Check
             if (leaderRes.data?.is_leader) {
                  const leaderLink = document.createElement('li');
                  leaderLink.className = 'nav-item';
@@ -370,8 +359,7 @@
                  navList.appendChild(leaderLink);
             }
 
-
-            // 3. Load dashboard widgets with REAL data
+            // Load Widgets
             await Promise.all([
                 loadTeamWidget(currentUserId),
                 loadTasksWidget(currentUserId),
@@ -379,82 +367,55 @@
             ]);
         }
 
-        // --- Widget Data Functions (Unchanged Logic) ---
         async function loadTeamWidget(userId) {
              const loadingState = document.getElementById('team-loading-state');
-             loadingState.textContent = 'Loading team...';
-             teamListEl.innerHTML = '';
-             
              try {
-                 // 1. Find what team the user is on
                  const { data: teamLink, error: teamLinkError } = await supabase
                      .from('team_members')
                      .select('team_id')
                      .eq('user_id', userId)
                      .maybeSingle(); 
                      
-                 if (teamLinkError) throw teamLinkError;
-                 
                  if (!teamLink) {
                      teamNameEl.textContent = 'Not assigned to a team';
+                     if (loadingState) loadingState.remove();
                      return;
                  }
                  
-                 const teamId = teamLink.team_id;
-                 
-                 // 2. Get the team's name
                  const { data: teamData, error: teamError } = await supabase
                      .from('teams')
                      .select('name')
-                     .eq('id', teamId)
+                     .eq('id', teamLink.team_id)
                      .single();
                      
-                 if (teamError) throw teamError;
                  teamNameEl.textContent = teamData.name;
                  
-                 // 3. Get all members of that team
-                 const { data: memberLinks, error: membersError } = await supabase
+                 const { data: memberLinks } = await supabase
                      .from('team_members')
                      .select('user_id')
-                     .eq('team_id', teamId);
+                     .eq('team_id', teamLink.team_id);
                      
-                 if (membersError) throw membersError;
-                 
                  const userIds = memberLinks.map(m => m.user_id);
-                 
-                 // 4. Get the names for those user_ids from 'pending_requests'
-                 if (userIds.length > 0) {
-                     const { data: members, error: namesError } = await supabase
+                 const { data: members } = await supabase
                          .from('pending_requests')
                          .select('full_name')
                          .in('id', userIds)
-                          .eq('status', 'approved');
+                         .eq('status', 'approved');
 
-                     if (namesError) throw namesError;
-
-                     teamListEl.innerHTML = members.map(member => 
-                         `<li class="team-member">${member.full_name || 'Name not set'}</li>`
-                     ).join('');
-                 } else {
-                      teamListEl.innerHTML = '<li class="team-member">No other members found.</li>';
-                 }
+                 teamListEl.innerHTML = members.map(member => 
+                     `<li class="team-member">${member.full_name || 'Member'}</li>`
+                 ).join('');
 
              } catch (error) {
                  console.error('Error loading team:', error);
                  teamNameEl.textContent = 'Error loading team';
-                 const loadingState = document.getElementById('team-loading-state');
-                 if (loadingState) loadingState.remove(); 
              } finally {
-                 const loadingState = document.getElementById('team-loading-state');
-                 if (loadingState) loadingState.remove(); 
+                 if (loadingState) loadingState.remove();
              }
          }
 
         async function loadTasksWidget(userId) {
              const loadingState = document.getElementById('tasks-loading-state');
-             loadingState.textContent = 'Loading tasks...';
-             taskListEl.innerHTML = '';
-             
              try {
                  const { data: tasks, error } = await supabase
                      .from('tasks')
@@ -462,115 +423,84 @@
                      .eq('assigned_to', userId) 
                      .order('is_complete', { ascending: true }); 
 
-                 if (error) throw error;
-                 
                  if (tasks.length === 0) {
                      taskListEl.innerHTML = `<li class="task-item" style="cursor: default;">No tasks assigned.</li>`;
-                     return;
+                 } else {
+                     taskListEl.innerHTML = tasks.map(task => 
+                         `<li class="task-item ${task.is_complete ? 'completed' : ''}" data-task-id="${task.id}" data-is-complete="${task.is_complete}">
+                             ${task.title}
+                         </li>`
+                     ).join('');
                  }
-
-                 taskListEl.innerHTML = tasks.map(task => 
-                     `<li class="task-item ${task.is_complete ? 'completed' : ''}" data-task-id="${task.id}" data-is-complete="${task.is_complete}">
-                         ${task.title}
-                     </li>`
-                 ).join('');
-
              } catch (error) {
                  console.error('Error loading tasks:', error);
-                 loadingState.textContent = 'Error loading tasks.';
              } finally {
-                 const loadingState = document.getElementById('tasks-loading-state');
                  if (loadingState) loadingState.remove();
              }
          }
          
-         // --- Handle Task Click (Task Completion) ---
+         // Task Completion Logic
          taskListEl.addEventListener('click', async (e) => {
              const item = e.target.closest('.task-item');
              if (!item || item.dataset.isComplete === 'true') return; 
 
              const taskId = item.dataset.taskId;
-             const newStatus = true; 
-             
-             // Optimistic UI update
-             item.classList.add('completed', 'updating');
+             item.classList.add('completed');
              item.style.opacity = '0.5';
              
              try {
                  const { error } = await supabase
                      .from('tasks')
-                     .update({ is_complete: newStatus })
+                     .update({ is_complete: true })
                      .eq('id', taskId);
 
                  if (error) throw error;
                  
-                 // Final UI update
                  item.dataset.isComplete = 'true';
                  item.style.opacity = '1';
-                 item.classList.remove('updating');
-                 
-                 // Refresh all tasks to re-sort completed item to the bottom
                  const { data: { user } } = await supabase.auth.getUser();
                  loadTasksWidget(user.id); 
                  
              } catch (error) {
                  console.error('Error updating task status:', error);
-                 // Rollback UI on failure
-                 item.classList.remove('completed', 'updating');
+                 item.classList.remove('completed');
                  item.style.opacity = '1';
-                 alert('Failed to mark task complete. Check RLS policies on "tasks" table.');
              }
          });
 
-
         async function loadHackathonsWidget() {
              const loadingState = document.getElementById('hackathons-loading-state');
-             loadingState.textContent = 'Loading hackathons...';
-             hackathonListEl.innerHTML = '';
-
              try {
                  const { data: hackathons, error } = await supabase
                      .from('hackathons')
                      .select('title, start_date')
-                     .order('start_date', { ascending: true });
-
-                 if (error) throw error;
+                     .gte('start_date', new Date().toISOString())
+                     .order('start_date', { ascending: true })
+                     .limit(3);
 
                  if (hackathons.length === 0) {
                      hackathonListEl.innerHTML = `<li class="hackathon-item">No upcoming hackathons.</li>`;
-                     return;
+                 } else {
+                     hackathonListEl.innerHTML = hackathons.map(hackathon => `
+                         <li class="hackathon-item">
+                             <div class="hackathon-title">${hackathon.title}</div>
+                             <div class="hackathon-date">${new Date(hackathon.start_date).toLocaleDateString()}</div>
+                         </li>
+                     `).join('');
                  }
-
-                 hackathonListEl.innerHTML = hackathons.map(hackathon => `
-                     <li class="hackathon-item">
-                         <div class="hackathon-title">${hackathon.title}</div>
-                         <div class="hackathon-date">${new Date(hackathon.start_date).toLocaleDateString()}</div>
-                     </li>
-                 `).join('');
-                 
              } catch (error) {
                  console.error('Error loading hackathons:', error);
-                 loadingState.textContent = 'Error loading hackathons.';
              } finally {
-                  const loadingState = document.getElementById('hackathons-loading-state');
                  if (loadingState) loadingState.remove();
              }
          }
 
-        // --- Logout Logic ---
         logoutButton.addEventListener('click', async () => {
-            const { error } = await supabase.auth.signOut();
-            if (error) {
-                console.error('Error logging out:', error);
-            } else {
-                window.location.href = 'index.html'; // Redirect to index (login)
-            }
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
         });
 
-        // --- Initialize the Dashboard ---
         loadDashboard();
-
     </script>
-
 </body>
 </html>
